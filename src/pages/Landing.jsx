@@ -84,6 +84,7 @@ export default function Landing() {
     <section className="lcta" id="contact"><div className="lpw rv"><h2>Try it at your café<span className="script">this week.</span></h2>
       <p>Tell us about your café and we’ll show you a page with your own menu on it.</p>
       <div className="cta"><a className="lbtn o" href={contact}>{WA ? 'Message us on WhatsApp' : 'Talk to us'}</a>{MAIL && <a className="lbtn gh" href={'mailto:' + MAIL}>Email us</a>}</div></div></section>
+    <a className="stickycta" href={contact}>{WA ? 'Message us on WhatsApp' : 'Talk to us'}</a>
     <footer className="lfoot"><div className="lpw">CafeTap · <Link to="/login">Owner login</Link></div></footer>
   </div>)
 }

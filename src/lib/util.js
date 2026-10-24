@@ -20,3 +20,17 @@ export const catIcon = n => { n = n.toLowerCase(); return /coffee|brew|espresso|
 const pickArt = t => { t = (t || '').toLowerCase(); const r = [[/cold|iced|shake|smoothie|juice|mocktail|soda|lemonade|frappe|drink/, 'iced'], [/chai|kulhad|\btea\b/, 'chai'], [/sandwich|burger|wrap|roll|panini|toastie|\bsub\b/, 'sandwich'], [/croissant|pastr|bak|danish|puff|\bbun\b|bread|muffin|toast/, 'croissant'], [/cake|brownie|dessert|tart|pie|cookie|donut|doughnut|sweet|ice cream|waffle/, 'cake'], [/egg|omelette|breakfast|pancake/, 'egg'], [/pasta|salad|bowl|rice|soup|noodle|meal|pizza|fries|snack|bite/, 'dish'], [/coffee|latte|cappuc|espresso|mocha|americano|flat white|brew|macchiato|cortado/, 'latte']]; const m = r.find(([re]) => re.test(t)); return m ? m[1] : null }
 // Picks an illustration from the item name first, then its category.
 export const artKind = (name, cat) => pickArt(name) || pickArt(cat) || 'beans'
+export const SHORT = { menu: 'Menu', offers: 'Offers', wifi: 'Wi‑Fi', review: 'Review', feedback: 'Feedback' }
+export const HERO_ART = { roastery: 'latte', bakery: 'croissant', chai: 'chai', sage: 'latte', mocha: 'latte' }
+export const ARTS = [['', 'Match my design'], ['latte', 'Latte cup'], ['croissant', 'Croissant'], ['chai', 'Kulhad chai'], ['iced', 'Iced drink'], ['cake', 'Cake'], ['sandwich', 'Sandwich'], ['dish', 'Bowl'], ['egg', 'Breakfast plate'], ['beans', 'Coffee beans']]
+export const FONTS = { modern: ["'Bricolage Grotesque',sans-serif", 'Manrope,sans-serif'], elegant: ["'Playfair Display',serif", "'DM Sans',sans-serif"], editorial: ['Fraunces,serif', "'Hanken Grotesk',sans-serif"] }
+export const RADII = { sharp: '6px', soft: '18px', round: '30px' }
+const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] }
+// Turns an owner's design choices into CSS variables. Only known, validated values are ever used.
+export function designVars(d = {}) {
+  const v = {}
+  if (/^#[0-9a-f]{6}$/i.test(d.accent || '')) { v['--ac'] = d.accent; v['--a1'] = d.accent; v['--on'] = lum(d.accent) > 0.45 ? '#161616' : '#ffffff' }
+  const f = FONTS[d.font]; if (f) { v['--hf'] = f[0]; v['--bf'] = f[1] }
+  if (RADII[d.radius]) v['--r'] = RADII[d.radius]
+  return v
+}
