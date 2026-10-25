@@ -34,3 +34,4 @@ export function designVars(d = {}) {
   if (RADII[d.radius]) v['--r'] = RADII[d.radius]
   return v
 }
+export const okImg = u => (u && u.startsWith((import.meta.env.VITE_SUPABASE_URL || '#') + '/storage/v1/object/public/')) ? u : ''

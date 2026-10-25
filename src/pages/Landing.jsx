@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom'
 const WA = (import.meta.env.VITE_CONTACT_WHATSAPP || '').replace(/\D/g, '')
 const MAIL = import.meta.env.VITE_CONTACT_EMAIL || ''
 const DEMO = import.meta.env.VITE_DEMO_SLUG || ''
+const PHONE = import.meta.env.VITE_CONTACT_PHONE || ''
+const INSTA = /^https:\/\//.test(import.meta.env.VITE_CONTACT_INSTAGRAM || '') ? import.meta.env.VITE_CONTACT_INSTAGRAM : ''
+const CITY = import.meta.env.VITE_CITY || 'Kanpur'
 const contact = WA ? `https://wa.me/${WA}?text=${encodeURIComponent('Hi, I’d like to know more about CafeTap for my café.')}` : MAIL ? `mailto:${MAIL}` : '#contact'
 
 // What we offer. No prices are shown on the page, you talk them through with each café personally.
@@ -85,6 +88,8 @@ export default function Landing() {
       <p>Tell us about your café and we’ll show you a page with your own menu on it.</p>
       <div className="cta"><a className="lbtn o" href={contact}>{WA ? 'Message us on WhatsApp' : 'Talk to us'}</a>{MAIL && <a className="lbtn gh" href={'mailto:' + MAIL}>Email us</a>}</div></div></section>
     <a className="stickycta" href={contact}>{WA ? 'Message us on WhatsApp' : 'Talk to us'}</a>
-    <footer className="lfoot"><div className="lpw">CafeTap · <Link to="/login">Owner login</Link></div></footer>
+    <footer className="lfoot"><div className="lpw"><p>Made in {CITY}</p>
+      <p>{PHONE && <><a href={'tel:' + PHONE.replace(/[^+\d]/g, '')}>{PHONE}</a> · </>}{MAIL && <><a href={'mailto:' + MAIL}>{MAIL}</a> · </>}{INSTA && <><a href={INSTA} target="_blank" rel="noopener noreferrer">Instagram</a> · </>}<Link to="/privacy">Privacy</Link> · <Link to="/login">Owner login</Link></p>
+      <p>CafeTap</p></div></footer>
   </div>)
 }

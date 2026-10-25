@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Outlet, useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { inr, safe, track, OPTS, SHORT, BADGE, DIET, catIcon, artKind, HERO_ART, designVars } from '../lib/util'
+import { inr, safe, track, OPTS, SHORT, BADGE, DIET, catIcon, artKind, HERO_ART, designVars, okImg } from '../lib/util'
 import Art from '../components/Art.jsx'
 
 const P = { menu: 'M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8zM16 10h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2', offers: 'M3 12V4h8l10 10-8 8L3 12zM7.5 7.5h.01', wifi: 'M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0M12 19.5h.01', review: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z', feedback: 'M4 5h16v11H9l-5 4V5z', back: 'M15 5l-7 7 7 7', x: 'M6 6l12 12M18 6L6 18', arrow: 'M5 12h14M13 6l6 6-6 6', cup: 'M5 8h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8zM16 10h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2', bake: 'M4 18v-5a8 8 0 0 1 16 0v5H4zM9 10l2 3M13 10l2 3', plate: 'M3 10l9-5 9 5-9 5-9-5zM3 14l9 5 9-5', cake: 'M4 20h16v-7H4v7zM4 13c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2M12 7V4', glass: 'M7 4h10l-1.5 15a2 2 0 0 1-2 1.8h-3a2 2 0 0 1-2-1.8L7 4zM8 9h8', egg: 'M12 4c-4 0-7 5-7 9a7 7 0 0 0 14 0c0-4-3-9-7-9z', dish: 'M3 14h18a9 9 0 0 0-18 0zM2 18h20', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', list: 'M4 6h16M4 12h16M4 18h16', info: 'M12 11v6M12 7.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z' }
@@ -70,7 +70,7 @@ const PT = [[8, 18, 16, 0, 7], [78, 8, 12, 1.2, 9], [20, 62, 12, 2, 8], [88, 54,
 export function Home() {
   const { cafe, slug } = useOutletContext(), { table } = useParams()
   const [label, setLabel] = useState(''), [offer, setOffer] = useState(null), [info, setInfo] = useState(false)
-  const d = cafe.settings?.design || {}
+  const d = cafe.settings?.design || {}, cover = okImg(cover), logo = okImg(logo)
   useEffect(() => {
     if (table) supabase.from('cafe_tables').select('display_name').eq('cafe_id', cafe.id).eq('token', table).maybeSingle().then(({ data }) => setLabel(data?.display_name || ''))
     const today = new Date().toISOString().slice(0, 10)
@@ -82,12 +82,12 @@ export function Home() {
   let n = 0
   const title = cafe.name.split(' ').map((w, wi) => <span className="w" key={wi}>{[...w].map(ch => <span className="l" key={n} style={{ '--n': n++ }}>{ch}</span>)}{' '}</span>)
   return (<>
-    <section className={'stage' + (cafe.cover_url ? ' img' : '')} onPointerMove={move} style={cafe.cover_url ? { backgroundImage: `url("${cafe.cover_url}")` } : undefined}>
-      {!cafe.cover_url && <><div className="parts" aria-hidden="true">{PT.map(([x, y, s, dl, du], i) => <i key={i} className="pt" style={{ left: x + '%', top: y + '%', '--s': s + 'px', '--dl': dl + 's', '--du': du + 's' }} />)}</div>
+    <section className={'stage' + (cover ? ' img' : '')} onPointerMove={move} style={cover ? { backgroundImage: `url("${cover}")` } : undefined}>
+      {!cover && <><div className="parts" aria-hidden="true">{PT.map(([x, y, s, dl, du], i) => <i key={i} className="pt" style={{ left: x + '%', top: y + '%', '--s': s + 'px', '--dl': dl + 's', '--du': du + 's' }} />)}</div>
         <div className="hart" aria-hidden="true"><div className="hfloat"><span className="blob" /><Art kind={d.art || HERO_ART[cafe.theme] || 'latte'} /></div></div></>}
       <button className="info" onClick={() => setInfo(true)} aria-label="About us, hours and Instagram"><Ic n="info" s={22} /></button>
       <div className="stext">
-        {cafe.logo_url && <img className="logo" src={cafe.logo_url} alt="" />}
+        {logo && <img className="logo" src={logo} alt="" />}
         {label && <span className="pill">{label}</span>}
         <p className="greet2">{d.greeting || greetFor(new Date().getHours())}</p>
         <h1 aria-label={cafe.name}><span aria-hidden="true">{title}</span></h1>
@@ -109,7 +109,7 @@ export function Home() {
 }
 
 const Diet = ({ d }) => d ? <i className={'diet ' + d} role="img" aria-label={DIET[d]} title={DIET[d]} /> : null
-const Ph = ({ i }) => <div className="ph">{i.image_url ? <img src={i.image_url} alt="" loading="lazy" /> : <Art kind={artKind(i.name, i._cat)} />}
+const Ph = ({ i }) => <div className="ph">{okImg(i.image_url) ? <img src={okImg(i.image_url)} alt="" loading="lazy" /> : <Art kind={artKind(i.name, i._cat)} />}
   {i.badge && <em className="bdg">{BADGE[i.badge]}</em>}{!i.is_available && <em className="bdg" style={{ top: 'auto', bottom: 10, background: '#555', color: '#fff' }}>Sold out</em>}</div>
 const Card = ({ i, cls, onOpen, fav, toggle }) => <div className={cls + (i.is_available ? '' : ' out')}>
   <button className="cm" onClick={() => onOpen(i)}><Ph i={i} /><div className="cb"><b><Diet d={i.diet} />{i.name}</b>{i.description && <small>{i.description}</small>}<span className="price">{inr(i.price_paise)}</span></div></button>
@@ -162,13 +162,13 @@ export function MenuPage() {
         {view === 'grid' ? <div className="grid2">{c.items.map((i, k) => <Card key={i.id} i={i} cls={'gcard' + (k === 0 && c.items.length > 1 ? ' wide' : '')} onOpen={show} fav={favs.includes(i.id)} toggle={toggle} />)}</div>
           : c.items.map(i => <button key={i.id} className={'mrow' + (i.is_available ? '' : ' out')} onClick={() => show(i)}>
             <span className="t"><b><Diet d={i.diet} />{i.name}{i.badge && <span className="pill2">{BADGE[i.badge]}</span>}</b>{i.description && <p>{i.description}</p>}<span className="price">{inr(i.price_paise)}{!i.is_available && <em> · Sold out</em>}</span></span>
-            {i.image_url ? <img src={i.image_url} alt="" loading="lazy" /> : <span className="thumb2"><Art kind={artKind(i.name, i._cat)} /></span>}</button>)}
+            {okImg(i.image_url) ? <img src={okImg(i.image_url)} alt="" loading="lazy" /> : <span className="thumb2"><Art kind={artKind(i.name, i._cat)} /></span>}</button>)}
       </section>)}
       <p className="small mut">Please tell our staff about any allergies.</p>
     </Sub>
     <div className={'scrim' + (open ? ' on' : '')} onClick={() => setOpen(false)} />
     <div className={'sheet' + (open ? ' on' : '')} role="dialog" aria-modal="true" aria-label={sel?.name} aria-hidden={!open}>
-      {sel && <>{sel.image_url ? <img className="sheetimg" src={sel.image_url} alt="" /> : <div className="sheetart"><Art kind={artKind(sel.name, sel._cat)} /></div>}
+      {sel && <>{okImg(sel.image_url) ? <img className="sheetimg" src={okImg(sel.image_url)} alt="" /> : <div className="sheetart"><Art kind={artKind(sel.name, sel._cat)} /></div>}
         <div className="sheetbody"><button className="x" onClick={() => setOpen(false)} aria-label="Close"><Ic n="x" s={20} /></button>
           {sel.badge && <span className="badge">{BADGE[sel.badge]}</span>}
           <h3><Diet d={sel.diet} />{sel.name}</h3><p className="price big">{inr(sel.price_paise)}</p>
