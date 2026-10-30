@@ -7,6 +7,9 @@ import Offers from './dash/Offers'
 import Settings from './dash/Settings'
 import Tables from './dash/Tables'
 import Business from './dash/Business'
+import Board from './pos/Board'
+import Sales from './pos/Sales'
+import PosSettings from './pos/PosSettings'
 
 export function Overview({ cafe, go, publish, isAdmin }) {
   const [counts, setCounts] = useState({}), [fb, setFb] = useState([]), [items, setItems] = useState(null)
@@ -39,8 +42,11 @@ export function Overview({ cafe, go, publish, isAdmin }) {
 
 export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
   const [tab, setTab] = useState('overview')
-  // QR codes, NFC and billing are part of YOUR service, so only the admin sees these tabs.
-  const tabs = [['overview', 'Home'], ['menu', 'Menu'], ['offers', 'Offers'], ['settings', 'My page'], ...(isAdmin ? [['tables', 'QR & NFC'], ['business', 'Business']] : [])]
+  const pos = cafe.plan_tier === 'pos' && !cafe.suspended
+  // QR/NFC and billing are part of YOUR service, so only the admin sees them. Orders and sales are the café's private data: the admin never sees them.
+  const tabs = [['overview', 'Home'], ['menu', 'Menu'], ['offers', 'Offers'], ['settings', 'My page'],
+    ...(pos && !isAdmin ? [['orders', 'Orders'], ['sales', 'Sales']] : []), ...(pos ? [['pos', 'POS setup']] : []),
+    ...(isAdmin ? [['tables', 'QR & NFC'], ['business', 'Business']] : [])]
   const publish = async v => { await supabase.from('cafes').update({ published: v }).eq('id', cafe.id); reload() }
   return (<div className="dash">
     <header className="top"><span className="lg">CafeTap{isAdmin && <span className="chip">Admin</span>}</span>
@@ -49,13 +55,28 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
       <label className="switch"><input type="checkbox" checked={cafe.published} onChange={e => publish(e.target.checked)} /><span className="tr" /><b>{cafe.published ? 'Live' : 'Hidden'}</b></label></section>
     <div className="tabwrap"><nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav></div>
     <div className="pad">
+      {cafe.suspended && !isAdmin && <p className="panel err">Your account is paused. Your public page stays online, but editing is switched off. Please contact CafeTap.</p>}
       {tab === 'overview' && <Overview cafe={cafe} go={setTab} publish={publish} isAdmin={isAdmin} />}
       {tab === 'menu' && <MenuEditor cafe={cafe} uid={uid} />}
       {tab === 'offers' && <Offers cafe={cafe} />}
       {tab === 'settings' && <Settings cafe={cafe} uid={uid} reload={reload} />}
+      {tab === 'orders' && pos && !isAdmin && <Board cafe={cafe} perms={{ orders: true, payments: true, close: true, owner: true }} />}
+      {tab === 'sales' && pos && !isAdmin && <Sales cafe={cafe} />}
+      {tab === 'pos' && pos && <PosSettings cafe={cafe} isAdmin={isAdmin} />}
       {isAdmin && tab === 'tables' && <Tables cafe={cafe} />}
       {isAdmin && tab === 'business' && <Business cafe={cafe} reload={reload} onDeleted={onBack} />}
     </div></div>)
+}
+
+function StaffWorkspace({ cafe, member }) {
+  const tabs = [...(member.can_orders ? [['orders', 'Orders']] : []), ...(member.can_reports ? [['sales', 'Sales']] : [])]
+  const [tab, setTab] = useState(tabs[0]?.[0])
+  return (<div className="dash"><header className="top"><span className="lg">CafeTap</span><button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></header>
+    <section className="greet"><div><span className="script">Staff</span><h1>{cafe.name}</h1></div></section>
+    <div className="tabwrap"><nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav></div>
+    <div className="pad">{!tabs.length && <p className="panel">You don’t have any permissions yet. Ask the café owner.</p>}
+      {tab === 'orders' && <Board cafe={cafe} perms={{ orders: member.can_orders, payments: member.can_payments, close: member.can_close, owner: false }} />}
+      {tab === 'sales' && <Sales cafe={cafe} />}</div></div>)
 }
 
 export default function Dashboard() {
@@ -68,14 +89,18 @@ export default function Dashboard() {
     const get = () => supabase.from('cafes').select('*').eq('owner_id', uid).maybeSingle()
     let r = await get()
     if (!r.data) { await supabase.rpc('claim_cafe'); r = await get() }
-    setSt({ cafe: r.data })
+    if (r.data) return setSt({ cafe: r.data })
+    const m = await supabase.from('cafe_members').select('*').eq('user_id', uid).eq('active', true).maybeSingle()
+    if (m.data) { const c = await supabase.from('cafes').select('*').eq('id', m.data.cafe_id).maybeSingle(); return setSt({ staff: m.data, cafe: c.data }) }
+    setSt({ cafe: null })
   }
   useEffect(() => { if (session) load() }, [session])
   if (session === undefined || (session && st.loading)) return <p className="dash pad">Loading…</p>
   if (!session) return <Navigate to="/login" replace />
   if (st.admin) return <Navigate to="/admin" replace />
-  if (!st.cafe) return (<main className="dash auth"><span className="lg dk">CafeTap</span><h1>Your page isn’t ready yet</h1>
-    <p>Make sure you signed up with the exact email address your CafeTap provider registered, and that you confirmed it from your inbox. Then log in again.</p>
+  if (!st.cafe || (st.staff && st.cafe.plan_tier !== 'pos')) return (<main className="dash auth"><span className="lg dk">CafeTap</span><h1>Your page isn’t ready yet</h1>
+    <p>Make sure you log in with the exact email address CafeTap registered for you. If you were told your account is ready, contact CafeTap.</p>
     <button onClick={() => supabase.auth.signOut()}>Log out</button></main>)
+  if (st.staff) return <StaffWorkspace cafe={st.cafe} member={st.staff} />
   return <Workspace cafe={st.cafe} uid={session.user.id} reload={load} />
 }

@@ -8,18 +8,18 @@ const THEMES = [['roastery', 'Noir: dark, brass, elegant'], ['bakery', 'Blush: s
 export default function Settings({ cafe, uid, reload }) {
   const s = cafe.settings || {}
   const [f, setF] = useState({ name: cafe.name, tagline: cafe.tagline || '', about: cafe.about || '', hours: cafe.hours || '', theme: cafe.theme, logo_url: cafe.logo_url || '', cover_url: cafe.cover_url || '',
-    insta: s.insta || '', review_url: s.review_url || '', wifi_name: s.wifi_name || '', wifi_password: s.wifi_password || '', show_pw: !!s.show_wifi_password, options: s.options || OPTS.map(o => o[0]), accent: s.design?.accent || '', font: s.design?.font || 'classic', radius: s.design?.radius || '', art: s.design?.art || '', calm: !!s.design?.calm, greeting: s.design?.greeting || '' })
+    insta: s.insta || '', address: s.address || '', phone: s.phone || '', maps: s.maps || '', review_url: s.review_url || '', wifi_name: s.wifi_name || '', wifi_password: s.wifi_password || '', show_pw: !!s.show_wifi_password, options: s.options || OPTS.map(o => o[0]), accent: s.design?.accent || '', font: s.design?.font || 'classic', radius: s.design?.radius || '', art: s.design?.art || '', calm: !!s.design?.calm, greeting: s.design?.greeting || '' })
   const [msg, setMsg] = useState('')
   const set = (k, v) => setF({ ...f, [k]: v })
   const toggle = k => set('options', f.options.includes(k) ? f.options.filter(x => x !== k) : [...f.options, k])
   const pic = async (k, file) => { if (!file) return; try { set(k, await upload(file, uid)) } catch (e) { setMsg(e.message) } }
   const save = async e => {
     e.preventDefault()
-    if ((f.insta && !safe(f.insta)) || (f.review_url && !safe(f.review_url))) return setMsg('Links must start with https://')
+    if ((f.insta && !safe(f.insta)) || (f.review_url && !safe(f.review_url)) || (f.maps && !safe(f.maps))) return setMsg('Links must start with https://')
     const { error } = await supabase.from('cafes').update({
       name: f.name.trim(), tagline: f.tagline, about: f.about, hours: f.hours, theme: f.theme, logo_url: f.logo_url || null, cover_url: f.cover_url || null, updated_at: new Date().toISOString(),
       // The password is only stored when you choose to show it, because this row is readable by anyone who opens your page.
-      settings: { insta: f.insta, review_url: f.review_url, wifi_name: f.wifi_name, wifi_password: f.show_pw ? f.wifi_password : '', show_wifi_password: f.show_pw, options: f.options, design: { accent: f.accent, font: f.font, radius: f.radius, art: f.art, calm: f.calm, greeting: f.greeting.trim().slice(0, 40) } },
+      settings: { insta: f.insta, address: f.address.slice(0, 160), phone: f.phone.slice(0, 20), maps: f.maps, review_url: f.review_url, wifi_name: f.wifi_name, wifi_password: f.show_pw ? f.wifi_password : '', show_wifi_password: f.show_pw, options: f.options, design: { accent: f.accent, font: f.font, radius: f.radius, art: f.art, calm: f.calm, greeting: f.greeting.trim().slice(0, 40) } },
     }).eq('id', cafe.id)
     setMsg(error ? error.message : 'Saved'); reload()
   }
@@ -44,7 +44,7 @@ export default function Settings({ cafe, uid, reload }) {
         {f[k] && <button type="button" className="link" onClick={() => set(k, '')}>Remove</button>}</div>)}</details>
     <details className="panel"><summary>Buttons on your home page</summary>
       {OPTS.map(([k, t]) => <label key={k} className="chk"><input type="checkbox" checked={f.options.includes(k)} onChange={() => toggle(k)} /> {t}</label>)}</details>
-    <details className="panel"><summary>Links and Wi‑Fi</summary>{T('insta', 'Instagram link', 'https://instagram.com/yourcafe')}{T('review_url', 'Google review link', 'https://…')}
+    <details className="panel"><summary>Links and Wi‑Fi</summary>{T('address', 'Address (shown in the info panel)')}{T('phone', 'Phone', '+91 …')}{T('maps', 'Google Maps link', 'https://maps.app.goo.gl/…')}{T('insta', 'Instagram link', 'https://instagram.com/yourcafe')}{T('review_url', 'Google review link', 'https://…')}
       {T('wifi_name', 'Wi‑Fi name')}{T('wifi_password', 'Wi‑Fi password')}
       <label className="chk"><input type="checkbox" checked={f.show_pw} onChange={e => set('show_pw', e.target.checked)} /> Show the password on my page</label>
       <p className="muted">Anyone who opens your page can see it. If unticked, customers are told to ask staff.</p></details>

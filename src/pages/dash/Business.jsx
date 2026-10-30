@@ -4,22 +4,26 @@ import { slugify, RESERVED } from '../../lib/util'
 
 export default function Business({ cafe, reload, onDeleted }) {
   const a = (Array.isArray(cafe.cafe_admin) ? cafe.cafe_admin[0] : cafe.cafe_admin) || {}
-  const [f, setF] = useState({ plan: a.plan || 'trial', trial_end: a.trial_end || '', price: a.monthly_price_inr ?? '', notes: a.notes || '', email: cafe.owner_email || '', slug: cafe.slug })
+  const [f, setF] = useState({ plan: a.plan || 'trial', trial_end: a.trial_end || '', price: a.monthly_price_inr ?? '', notes: a.notes || '', email: a.owner_email || '', tier: cafe.plan_tier || 'basic', suspended: !!cafe.suspended, slug: cafe.slug })
   const [msg, setMsg] = useState('')
   const set = (k, v) => setF({ ...f, [k]: v })
   const save = async e => {
     e.preventDefault()
     const s = slugify(f.slug)
     if (s.length < 3 || RESERVED.includes(s)) return setMsg('Choose a different web address.')
-    const r1 = await supabase.from('cafe_admin').upsert({ cafe_id: cafe.id, plan: f.plan, trial_end: f.trial_end || null, monthly_price_inr: f.price === '' ? null : parseInt(f.price, 10), notes: f.notes })
-    const r2 = await supabase.from('cafes').update({ owner_email: f.email.trim().toLowerCase() || null, slug: s }).eq('id', cafe.id)
+    const r1 = await supabase.from('cafe_admin').upsert({ cafe_id: cafe.id, plan: f.plan, trial_end: f.trial_end || null, monthly_price_inr: f.price === '' ? null : parseInt(f.price, 10), notes: f.notes, owner_email: f.email.trim().toLowerCase() || null })
+    const r2 = await supabase.from('cafes').update({ slug: s, plan_tier: f.tier, suspended: f.suspended }).eq('id', cafe.id)
     const er = r1.error || r2.error; setMsg(er ? er.message : 'Saved'); reload()
   }
   const unlink = async () => { if (confirm('Disconnect the current owner login? They will lose access.')) { await supabase.from('cafes').update({ owner_id: null }).eq('id', cafe.id); reload() } }
   const del = async () => { if (prompt('This deletes the café and all its data. Type its web address to confirm: ' + cafe.slug) === cafe.slug) { await supabase.from('cafes').delete().eq('id', cafe.id); reload(); onDeleted() } }
   return (<form onSubmit={save}>
     <p className="muted">Only you can see this tab. Owners never see billing, notes or QR codes.</p>
-    <div className="panel"><h2 style={{ marginTop: 0 }}>Plan</h2>
+    <div className="panel"><h2 style={{ marginTop: 0 }}>Product plan</h2>
+      <label>Plan</label><select value={f.tier} onChange={e => set('tier', e.target.value)}><option value="basic">Basic (digital page)</option><option value="pos">POS (ordering, staff, bills)</option></select>
+      <label className="chk"><input type="checkbox" checked={f.suspended} onChange={e => set('suspended', e.target.checked)} /> Pause this café’s dashboard (public page stays live)</label>
+      <p className="muted">Switching plan hides or shows the POS module. It never deletes history. Only you can change this.</p></div>
+    <div className="panel"><h2 style={{ marginTop: 0 }}>Billing</h2>
       <label>Status</label><select value={f.plan} onChange={e => set('plan', e.target.value)}>{['trial', 'active', 'paused', 'ended'].map(p => <option key={p}>{p}</option>)}</select>
       <label>Trial ends</label><input type="date" value={f.trial_end} onChange={e => set('trial_end', e.target.value)} />
       <label>Monthly price (₹)</label><input type="number" min="0" value={f.price} onChange={e => set('price', e.target.value)} />

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Deck, ArtShop } from '../components/Showcase.jsx'
+import { SHOWCASE } from '../data/showcase.js'
+import { ARTWORKS } from '../data/artworks.js'
 
 const WA = (import.meta.env.VITE_CONTACT_WHATSAPP || '').replace(/\D/g, '')
 const MAIL = import.meta.env.VITE_CONTACT_EMAIL || ''
@@ -7,13 +10,16 @@ const DEMO = import.meta.env.VITE_DEMO_SLUG || ''
 const PHONE = import.meta.env.VITE_CONTACT_PHONE || ''
 const INSTA = /^https:\/\//.test(import.meta.env.VITE_CONTACT_INSTAGRAM || '') ? import.meta.env.VITE_CONTACT_INSTAGRAM : ''
 const CITY = import.meta.env.VITE_CITY || 'Kanpur'
+const enquiry = text => WA ? `https://wa.me/${WA}?text=${encodeURIComponent(text)}` : MAIL ? `mailto:${MAIL}?subject=${encodeURIComponent('Enquiry')}&body=${encodeURIComponent(text)}` : '#contact'
 const contact = WA ? `https://wa.me/${WA}?text=${encodeURIComponent('Hi, I’d like to know more about CafeTap for my café.')}` : MAIL ? `mailto:${MAIL}` : '#contact'
 
 // What we offer. No prices are shown on the page, you talk them through with each café personally.
 const PLANS = [
-  { name: 'QR menu', tag: 'Start simple', desc: 'Your own café page, reachable from a QR code on every table.', pts: ['Your page, in your colours', 'Menu, offers, Wi‑Fi, reviews and feedback', 'Edit prices and availability yourself', 'Hosting and support included'] },
-  { name: 'QR + NFC', tag: 'Most loved', hot: true, desc: 'The same page, opened with a tap. Guests just hold their phone to the card.', pts: ['Everything in QR menu', 'NFC tap cards for your tables', 'We set up and test every card', 'A QR backup printed on each one'] },
-  { name: 'Custom look', tag: 'Make it yours', desc: 'A design built around your brand, beyond the ready-made themes.', pts: ['Your colours, fonts and illustrations', 'Extra sections for your story', 'Help with photos and menu entry', 'Changes as your café grows'] },
+  { name: 'Basic', tag: 'Available now', desc: 'A beautiful, personalised café page that guests open with a QR scan or an NFC tap.',
+    pts: ['Your own look: colours, fonts, illustrations', 'Menu with photos, veg marks and sold-out switch', 'Offers, guest Wi‑Fi, review link and private feedback', 'You edit prices and availability yourself', 'QR and NFC links, hosting and support'] },
+  { name: 'POS', tag: 'New · early access', hot: true, desc: 'Everything in Basic, plus optional table ordering and a simple counter workflow for your team.',
+    pts: ['Guests can order from their table (you switch it on)', 'Live order queue and a running bill for every table', 'Staff logins with permissions you choose', 'Cash and UPI recorded by your staff at the counter', 'Printable bills and daily sales summaries'],
+    note: 'Payment is collected at the counter. There is no online payment gateway, and CafeTap records what your staff confirm.' },
 ]
 const THEMES = [['roastery', 'Noir', 'Dark, brass, elegant', '#14100d', '#d9a752'], ['bakery', 'Blush', 'Soft, rounded, sweet', '#ffc7d4', '#e5557f'], ['chai', 'Citrus', 'Bold, loud, street', '#ffd23f', '#ff4d2e'], ['sage', 'Sage', 'Fresh green, cosy', '#cdd5bb', '#24402a'], ['mocha', 'Mocha', 'Warm cream and brown', '#3a1d0f', '#d9a752']]
 const MOCK = { roastery: ['Ember & Oak', 'Slow mornings, small batches'], bakery: ['Flour & Fig', 'Baked before sunrise'], chai: ['Kulhad Corner', 'Chai. Maska bun. Repeat.'], sage: ['Leaf & Bean', 'Good coffee, better days'], mocha: ['Cocoa & Co.', 'Freshly brewed, always'] }
@@ -55,6 +61,7 @@ export default function Landing() {
           <p className="swl">Tap a colour to try a design</p></div>
       </section></div>
 
+    {SHOWCASE.length > 0 && <section className="sec" id="cards"><div className="lpw rv"><p className="eyebrow">The cards</p><h2>Tap or scan. Made for your tables.</h2><Deck items={SHOWCASE} /></div></section>}
     <section className="sec"><div className="lpw rv"><p className="eyebrow">Why cafés switch</p><h2>One page instead of five loose ends.</h2>
       <div className="cmp"><div className="cbox"><h3>Today</h3><ul><li>A PDF menu that is always out of date</li><li>Paper menus reprinted for every price change</li><li>“What’s the Wi‑Fi password?” fifty times a day</li><li>Reviews and feedback scattered everywhere</li></ul></div>
         <div className="cbox dark"><h3>With CafeTap</h3><ul><li>One live menu you edit from your phone</li><li>The same QR and NFC card, forever</li><li>Wi‑Fi, offers and reviews one tap away</li><li>Private feedback that reaches only you</li></ul></div></div></div></section>
@@ -71,17 +78,22 @@ export default function Landing() {
       <p className="lead2">Pick a starting design, then we tune the colours, photos and wording. Need something fully custom? We can build it.</p>
       <div className="tgrid">{THEMES.map(([k, n, v]) => <button key={k} className="tcard" data-theme={k} onClick={() => { setT(k); scrollTo({ top: 0, behavior: 'smooth' }) }}><b>{n}</b><small>{v}</small></button>)}</div></div></section>
 
-    <section className="sec" id="plans"><div className="lpw rv"><p className="eyebrow">What we offer</p><h2>Choose the setup that fits your café.</h2>
-      <p className="lead2">Every café is different, so we shape it around yours. We talk through the details together and agree everything before you start.</p>
-      <div className="pgrid">{PLANS.map(p => <div key={p.name} className={'pc' + (p.hot ? ' hot' : '')}><span className="per">{p.tag}</span><h3>{p.name}</h3><p className="pd">{p.desc}</p><ul>{p.pts.map(x => <li key={x}>{x}</li>)}</ul><a className={'lbtn' + (p.hot ? ' o' : '')} style={{ marginTop: 22 }} href={contact}>Talk to us</a></div>)}</div>
-      <p className="note2">Setup, cards and any extras are agreed with you personally. We don’t take orders or payments: CafeTap is your menu and information page.</p></div></section>
+    <section className="sec" id="plans"><div className="lpw rv"><p className="eyebrow">Two plans</p><h2>Start simple. Add ordering when you’re ready.</h2>
+      <p className="lead2">Both plans use the same page and the same QR or NFC card. You can move up later without reprinting anything.</p>
+      <div className="pgrid two">{PLANS.map(p => <div key={p.name} className={'pc' + (p.hot ? ' hot' : '')}><span className="per">{p.tag}</span><h3>{p.name}</h3><p className="pd">{p.desc}</p><ul>{p.pts.map(x => <li key={x}>{x}</li>)}</ul>{p.note && <p className="pnote">{p.note}</p>}<a className={'lbtn' + (p.hot ? ' o' : '')} style={{ marginTop: 22 }} href={contact}>Talk to us</a></div>)}</div>
+      <p className="note2">We agree setup and monthly details with you personally. We don’t offer unavailable features: ordering and staff tools are only in the POS plan.</p></div></section>
 
+    {ARTWORKS.length > 0 && <section className="sec" id="art"><div className="lpw rv"><p className="eyebrow">Art for your café</p><h2>Paintings and artefacts for your walls.</h2><p className="lead2">Original pieces by independent artists. Each listing says who sells it. Ask us about any piece.</p><ArtShop items={ARTWORKS} hrefFor={enquiry} /></div></section>}
     <section className="sec"><div className="lpw rv faq"><p className="eyebrow">Questions</p><h2>Honest answers.</h2>
       <div style={{ marginTop: 28 }}>
         <details><summary>Do my guests need an app?</summary><p>No. The page opens in their phone’s browser when they tap the NFC card or scan the QR.</p></details>
         <details><summary>What happens when I change my menu?</summary><p>You edit it in your dashboard and the live page updates. The cards on your tables never need replacing.</p></details>
         <details><summary>What if a phone doesn’t support NFC?</summary><p>Every card also carries a QR code, so everyone can still open the page.</p></details>
         <details><summary>Do you take orders or payments?</summary><p>No. CafeTap is your menu and information page, not a POS.</p></details>
+        <details><summary>What is the difference between QR and NFC?</summary><p>A QR code opens your page when a guest scans it with the camera. An NFC card opens the same page when a guest taps their phone on it. Every card carries both, so every phone works.</p></details>
+        <details><summary>What is the difference between Basic and POS?</summary><p>Basic is your personalised page: menu, offers, Wi‑Fi, reviews and feedback. POS adds optional table ordering, a live order queue, running table bills, staff logins and counter payment records.</p></details>
+        <details><summary>Is POS compulsory?</summary><p>No. Ordering is optional and you decide whether to switch it on. Guests can always browse the menu without ordering.</p></details>
+        <details><summary>Do guests pay online?</summary><p>No. Payment is collected at the counter and your staff record cash or UPI after checking it themselves.</p></details>
         <details><summary>How much does it cost?</summary><p>It depends on the setup you choose, so we talk it through personally and agree everything before you start.</p></details></div></div></section>
 
     <section className="lcta" id="contact"><div className="lpw rv"><h2>Try it at your café<span className="script">this week.</span></h2>

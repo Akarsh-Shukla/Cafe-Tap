@@ -17,3 +17,9 @@
 ## Before the first paying client
 - Use hosting that allows commercial use, set a domain, and test password reset and email confirmation links on the live site.
 - Export your tables weekly if you are on the free database plan (it has no automatic backups).
+
+## v9 additions
+- Run migration-5.sql: owner emails are no longer public, table codes can't be listed, platform admin can't read feedback or visit counts, uploads are limited to owners and 2 MB images.
+- Turn OFF public sign-ups in Supabase and create logins yourself. Our app no longer offers "Create account".
+- Geolocation is allowed only for this site (Permissions-Policy geolocation=(self)). Do not widen it.
+- POS: see docs/POS_TEST_PLAN.md. Run supabase/tests/pos_tests.sql on a staging project first.

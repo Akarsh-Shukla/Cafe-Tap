@@ -32,9 +32,9 @@ export default function Admin() {
     e.preventDefault(); setErr('')
     const slug = slugify(f.slug || f.name)
     if (slug.length < 3 || RESERVED.includes(slug)) return setErr('Choose a different web address (3+ letters or numbers).')
-    const { data, error } = await supabase.from('cafes').insert({ name: f.name.trim(), slug, owner_email: f.email.trim().toLowerCase() || null }).select('id').single()
+    const { data, error } = await supabase.from('cafes').insert({ name: f.name.trim(), slug }).select('id').single()
     if (error) return setErr(error.code === '23505' ? 'That address is taken.' : error.message)
-    await supabase.from('cafe_admin').insert({ cafe_id: data.id })
+    await supabase.from('cafe_admin').insert({ cafe_id: data.id, owner_email: f.email.trim().toLowerCase() || null })
     setF({ name: '', slug: '', email: '' }); await load(); nav('/admin/' + data.id)
   }
   const active = rows.filter(r => plan(r).plan === 'active'), income = active.reduce((s, r) => s + (plan(r).monthly_price_inr || 0), 0)
@@ -45,8 +45,8 @@ export default function Admin() {
       <div className="stats"><div className="panel"><b>{rows.length}</b><span>Cafés</span></div><div className="panel"><b>{active.length}</b><span>Paying</span></div><div className="panel"><b>₹{income.toLocaleString('en-IN')}</b><span>Per month</span></div></div>
             {loaded && !rows.length && <p className="muted">No cafés yet. Add your first client below.</p>}
       {rows.map(r => { const p = plan(r), d = days(p.trial_end); return <button key={r.id} className="panel clist" onClick={() => nav('/admin/' + r.id)}>
-        <b>{r.name}</b><span className="muted">/{r.slug} · {r.owner_id ? 'owner connected' : r.owner_email ? 'waiting for owner' : 'no owner email'}</span>
-        <span className="muted">{p.plan || 'trial'}{p.plan === 'trial' && d !== null ? (d >= 0 ? ` · ${d} days left` : ' · trial over') : ''} · {r.published ? 'live' : 'not published'}</span></button> })}
+        <b>{r.name}</b><span className="muted">/{r.slug} · {r.owner_id ? 'owner connected' : p.owner_email ? 'waiting for owner' : 'no owner email'}</span>
+        <span className="muted">{p.plan || 'trial'}{p.plan === 'trial' && d !== null ? (d >= 0 ? ` · ${d} days left` : ' · trial over') : ''} · {r.published ? 'live' : 'not published'} · {r.plan_tier === 'pos' ? 'POS plan' : 'Basic plan'}{r.suspended ? ' · paused' : ''}</span></button> })}
       <form className="panel" onSubmit={create}><h2 style={{ marginTop: 0 }}>Add a café</h2>
         <label>Café name</label><input required value={f.name} onChange={e => setF({ ...f, name: e.target.value })} />
         <label>Web address</label><input value={f.slug} placeholder={slugify(f.name)} onChange={e => setF({ ...f, slug: slugify(e.target.value) })} />

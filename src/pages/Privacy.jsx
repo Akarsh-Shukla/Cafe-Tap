@@ -14,6 +14,11 @@ export default function Privacy() {
       <li>Feedback is anonymous. Please don’t put personal details in it. We don’t ask for any.</li>
       <li>Dishes you save with the heart are stored only on your own phone.</li>
       <li>Our hosting and database providers handle normal technical logs (such as IP addresses) to keep the service running.</li></ul>
+    <h2 style={{ fontSize: 24, margin: '28px 0 8px' }}>If a café offers table ordering</h2>
+    <ul><li>To order from a table, your phone is asked for your location once. It is checked on our server to confirm you are inside the café, and the coordinates are not stored.</li>
+      <li>You can always browse the menu without sharing your location.</li>
+      <li>We keep your order (items, total and a reference), not your name or phone number. The café’s staff see the order and record your payment at the counter.</li>
+      <li>A short-lived code kept in your browser tab links your device to your table for a limited time. It disappears when you close the tab.</li></ul>
     <h2 style={{ fontSize: 24, margin: '28px 0 8px' }}>For café owners</h2>
     <ul><li>We store your email address, your café’s page content, menu, photos and settings.</li>
       <li>You can unpublish your page at any time, and ask us to export or delete your café and its data.</li>

@@ -7,13 +7,16 @@ import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import Landing from './pages/Landing.jsx'
 import Privacy from './pages/Privacy.jsx'
+import Welcome from './pages/Welcome.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './styles.css'
 
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter><Routes>
+  <ErrorBoundary><BrowserRouter><Routes>
     <Route path="/" element={<Landing />} />
     <Route path="/login" element={<Login />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/welcome" element={<Welcome />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/admin" element={<Admin />} />
     <Route path="/admin/:id" element={<Admin />} />
@@ -26,5 +29,5 @@ createRoot(document.getElementById('root')).render(
       <Route path="feedback" element={<Feedback />} />
       <Route path="offers" element={<Offers />} />
     </Route>
-  </Routes></BrowserRouter>
+  </Routes></BrowserRouter></ErrorBoundary>
 )
