@@ -9,7 +9,8 @@ export default function Login() {
   const go = async e => {
     e.preventDefault(); setMsg('')
     if (mode === 'reset') {
-      await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin + '/welcome' })
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: window.location.origin + '/welcome' })
+      if (error) return setMsg('We couldn’t send an email right now. Please ask CafeTap for a temporary password.')
       return setMsg('If that email has a CafeTap login, a link to set your password is on its way.')
     }
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw })
@@ -22,10 +23,10 @@ export default function Login() {
         <label>Email</label><input type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} />
         {mode === 'in' && <><label>Password</label><input type="password" required autoComplete="current-password" value={pw} onChange={e => setPw(e.target.value)} /></>}
         <button>{mode === 'in' ? 'Log in' : 'Send me a link'}</button>
-        {msg && <p className={mode === 'reset' ? 'ok' : 'err'} role="alert">{msg}</p>}
+        {msg && <p className={mode === 'reset' && !/couldn’t/.test(msg) ? 'ok' : 'err'} role="alert">{msg}</p>}
       </form>
-      <p><button className="link" onClick={() => { setMode(mode === 'in' ? 'reset' : 'in'); setMsg('') }}>{mode === 'in' ? 'Forgot your password, or first time here?' : 'Back to log in'}</button></p>
-      <p className="muted">Accounts are created by CafeTap. If you don’t have one yet, please contact us.</p>
+      <p><button className="link" onClick={() => { setMode(mode === 'in' ? 'reset' : 'in'); setMsg('') }}>{mode === 'in' ? 'Forgot your password?' : 'Back to log in'}</button></p>
+      <p className="muted">Your login is created by CafeTap, who will give you a temporary password. After you log in, use “Change password” in the dashboard.</p>
     </main>
   )
 }

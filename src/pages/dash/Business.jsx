@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { slugify, RESERVED } from '../../lib/util'
 
 export default function Business({ cafe, reload, onDeleted }) {
   const a = (Array.isArray(cafe.cafe_admin) ? cafe.cafe_admin[0] : cafe.cafe_admin) || {}
   const [f, setF] = useState({ plan: a.plan || 'trial', trial_end: a.trial_end || '', price: a.monthly_price_inr ?? '', notes: a.notes || '', email: a.owner_email || '', tier: cafe.plan_tier || 'basic', suspended: !!cafe.suspended, slug: cafe.slug })
-  const [msg, setMsg] = useState('')
+  const [msg, setMsg] = useState(''), [login, setLogin] = useState('')
+  useEffect(() => { supabase.rpc('admin_owner_login_status', { p_cafe: cafe.id }).then(({ data }) => setLogin(data || '')) }, [cafe.id, cafe.owner_id])
+  const LOGIN_MSG = { no_email: 'Type the owner’s email below and save it first.', no_login: 'No login exists yet. In Supabase open Authentication > Users > Add user, use exactly this email, set a temporary password and tick Auto Confirm User.', unconfirmed: 'A login exists but its email is not confirmed. Open the user in Supabase and confirm it, or recreate it with Auto Confirm User ticked.', login_ready: 'Login created. The café connects automatically the first time the owner logs in.', connected: 'The owner is connected.' }
   const set = (k, v) => setF({ ...f, [k]: v })
   const save = async e => {
     e.preventDefault()
@@ -29,8 +31,8 @@ export default function Business({ cafe, reload, onDeleted }) {
       <label>Monthly price (₹)</label><input type="number" min="0" value={f.price} onChange={e => set('price', e.target.value)} />
       <label>Private notes</label><textarea rows={4} value={f.notes} onChange={e => set('notes', e.target.value)} placeholder="Agreed setup fee, NFC tags given, next follow-up…" /></div>
     <div className="panel"><h2 style={{ marginTop: 0 }}>Owner login</h2>
-      <label>Owner’s email (they must sign up and confirm this exact email)</label><input type="email" value={f.email} onChange={e => set('email', e.target.value)} />
-      <p className="muted">{cafe.owner_id ? 'Owner login is connected.' : 'Waiting for the owner to sign up.'}</p>
+      <label>Owner’s email (their login must use exactly this email)</label><input type="email" value={f.email} onChange={e => set('email', e.target.value)} />
+      <p className={login === 'connected' || login === 'login_ready' ? 'ok' : 'err'}>{LOGIN_MSG[login] || 'Checking…'}</p>
       {cafe.owner_id && <button type="button" className="ghost" onClick={unlink}>Disconnect owner</button>}
       <label>Web address</label><input value={f.slug} onChange={e => set('slug', slugify(e.target.value))} />
       <p className="muted">Changing this breaks every printed QR and NFC tag for this café.</p></div>

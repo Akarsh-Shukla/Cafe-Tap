@@ -50,7 +50,7 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
   const publish = async v => { await supabase.from('cafes').update({ published: v }).eq('id', cafe.id); reload() }
   return (<div className="dash">
     <header className="top"><span className="lg">CafeTap{isAdmin && <span className="chip">Admin</span>}</span>
-      <span><a href={'/' + cafe.slug} target="_blank" rel="noopener noreferrer">View page</a>{!onBack && <> · <button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></>}</span></header>
+      <span><a href={'/' + cafe.slug} target="_blank" rel="noopener noreferrer">View page</a>{!onBack && <> · <a href="/welcome">Change password</a> · <button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></>}</span></header>
     <section className="greet"><div>{onBack && <button className="link" style={{ padding: 0 }} onClick={onBack}>← All cafés</button>}<span className="script">{isAdmin ? 'Managing' : 'Welcome back'}</span><h1>{cafe.name}</h1></div>
       <label className="switch"><input type="checkbox" checked={cafe.published} onChange={e => publish(e.target.checked)} /><span className="tr" /><b>{cafe.published ? 'Live' : 'Hidden'}</b></label></section>
     <div className="tabwrap"><nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav></div>
@@ -71,7 +71,7 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
 function StaffWorkspace({ cafe, member }) {
   const tabs = [...(member.can_orders ? [['orders', 'Orders']] : []), ...(member.can_reports ? [['sales', 'Sales']] : [])]
   const [tab, setTab] = useState(tabs[0]?.[0])
-  return (<div className="dash"><header className="top"><span className="lg">CafeTap</span><button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></header>
+  return (<div className="dash"><header className="top"><span className="lg">CafeTap</span><span><a href="/welcome">Change password</a> · <button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></span></header>
     <section className="greet"><div><span className="script">Staff</span><h1>{cafe.name}</h1></div></section>
     <div className="tabwrap"><nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav></div>
     <div className="pad">{!tabs.length && <p className="panel">You don’t have any permissions yet. Ask the café owner.</p>}

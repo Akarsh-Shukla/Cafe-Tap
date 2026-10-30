@@ -50,7 +50,7 @@ export default function Admin() {
       <form className="panel" onSubmit={create}><h2 style={{ marginTop: 0 }}>Add a café</h2>
         <label>Café name</label><input required value={f.name} onChange={e => setF({ ...f, name: e.target.value })} />
         <label>Web address</label><input value={f.slug} placeholder={slugify(f.name)} onChange={e => setF({ ...f, slug: slugify(e.target.value) })} />
-        <label>Owner’s email (they sign up with this later)</label><input type="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} />
+        <label>Owner’s email (next, create their login in Supabase)</label><input type="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} />
         <button>Create café</button>{err && <p className="err">{err}</p>}</form>
     </div></div>)
 }
