@@ -6,8 +6,8 @@ export default function Business({ cafe, reload, onDeleted }) {
   const a = (Array.isArray(cafe.cafe_admin) ? cafe.cafe_admin[0] : cafe.cafe_admin) || {}
   const [f, setF] = useState({ plan: a.plan || 'trial', trial_end: a.trial_end || '', price: a.monthly_price_inr ?? '', notes: a.notes || '', email: a.owner_email || '', tier: cafe.plan_tier || 'basic', suspended: !!cafe.suspended, slug: cafe.slug })
   const [msg, setMsg] = useState(''), [login, setLogin] = useState('')
-  useEffect(() => { supabase.rpc('admin_owner_login_status', { p_cafe: cafe.id }).then(({ data }) => setLogin(data || '')) }, [cafe.id, cafe.owner_id])
-  const LOGIN_MSG = { no_email: 'Type the owner’s email below and save it first.', no_login: 'No login exists yet. In Supabase open Authentication > Users > Add user, use exactly this email, set a temporary password and tick Auto Confirm User.', unconfirmed: 'A login exists but its email is not confirmed. Open the user in Supabase and confirm it, or recreate it with Auto Confirm User ticked.', login_ready: 'Login created. The café connects automatically the first time the owner logs in.', connected: 'The owner is connected.' }
+  useEffect(() => { supabase.rpc('admin_owner_login_status', { p_cafe: cafe.id }).then(({ data, error }) => setLogin(error ? 'error' : data || '')) }, [cafe.id, cafe.owner_id])
+  const LOGIN_MSG = { no_email: 'Type the owner’s email below and save it first.', no_login: 'No login exists yet. In Supabase open Authentication > Users > Add user, use exactly this email, set a temporary password and tick Auto Confirm User.', unconfirmed: 'A login exists but its email is not confirmed. Open the user in Supabase and confirm it, or recreate it with Auto Confirm User ticked.', login_ready: 'Login created. The café connects automatically the first time the owner logs in.', connected: 'The owner is connected.', error: 'Couldn’t check this. Run migration-7.sql in the Supabase SQL Editor.' }
   const set = (k, v) => setF({ ...f, [k]: v })
   const save = async e => {
     e.preventDefault()

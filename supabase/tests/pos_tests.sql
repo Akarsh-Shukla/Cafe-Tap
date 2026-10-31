@@ -153,4 +153,28 @@ do $$ declare r jsonb; begin
   raise notice 'PASS T7 plan enforcement';
 end $$;
 reset role;
+
+-- T8  Linking an invited owner: the right person gets the café, nobody else can take it, and they cannot change protected fields
+insert into auth.users (instance_id, id, aud, role, email, email_confirmed_at, created_at, updated_at) values
+ ('00000000-0000-0000-0000-000000000000','f0000000-0000-0000-0000-00000000000f','authenticated','authenticated','new-owner@test.local',now(),now(),now());
+insert into cafes (id, slug, name, published) values ('f1000000-0000-0000-0000-0000000000f1','test-cafe-f','Test F',true);
+insert into cafe_admin (cafe_id, owner_email) values ('f1000000-0000-0000-0000-0000000000f1','New-Owner@Test.local');
+select set_config('request.jwt.claims','{"sub":"b0000000-0000-0000-0000-00000000000b","role":"authenticated"}',true), set_config('request.jwt.claim.sub','b0000000-0000-0000-0000-00000000000b',true);
+set local role authenticated;
+do $$ begin
+  perform claim_cafe();
+  if (select owner_id from cafes where id = 'f1000000-0000-0000-0000-0000000000f1') is not null then raise exception 'FAIL T8a a stranger claimed the café'; end if;
+  raise notice 'PASS T8a stranger cannot claim';
+end $$;
+reset role;
+select set_config('request.jwt.claims','{"sub":"f0000000-0000-0000-0000-00000000000f","role":"authenticated"}',true), set_config('request.jwt.claim.sub','f0000000-0000-0000-0000-00000000000f',true);
+set local role authenticated;
+do $$ begin
+  perform claim_cafe();
+  if (select owner_id from cafes where id = 'f1000000-0000-0000-0000-0000000000f1') is distinct from 'f0000000-0000-0000-0000-00000000000f'::uuid then raise exception 'FAIL T8b the invited owner was not linked'; end if;
+  update cafes set slug = 'hacked', plan_tier = 'pos', suspended = false where id = 'f1000000-0000-0000-0000-0000000000f1';
+  if (select slug from cafes where id = 'f1000000-0000-0000-0000-0000000000f1') <> 'test-cafe-f' or (select plan_tier from cafes where id = 'f1000000-0000-0000-0000-0000000000f1') <> 'basic' then raise exception 'FAIL T8c owner changed a protected field'; end if;
+  raise notice 'PASS T8 invited owner linked, protected fields locked';
+end $$;
+reset role;
 rollback;   -- nothing above is kept

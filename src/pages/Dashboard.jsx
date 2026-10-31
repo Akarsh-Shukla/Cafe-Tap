@@ -99,7 +99,7 @@ export default function Dashboard() {
   if (!session) return <Navigate to="/login" replace />
   if (st.admin) return <Navigate to="/admin" replace />
   if (!st.cafe || (st.staff && st.cafe.plan_tier !== 'pos')) return (<main className="dash auth"><span className="lg dk">CafeTap</span><h1>Your page isn’t ready yet</h1>
-    <p>Make sure you log in with the exact email address CafeTap registered for you. If you were told your account is ready, contact CafeTap.</p>
+    <p>You are signed in as <b>{session.user.email}</b>. CafeTap must have registered exactly this email for your café. If it is a different email, log out and sign in with that one; otherwise please contact CafeTap.</p>
     <button onClick={() => supabase.auth.signOut()}>Log out</button></main>)
   if (st.staff) return <StaffWorkspace cafe={st.cafe} member={st.staff} />
   return <Workspace cafe={st.cafe} uid={session.user.id} reload={load} />
