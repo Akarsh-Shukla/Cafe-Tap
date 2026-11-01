@@ -5,6 +5,14 @@
 -- Now the ONE allowed change is "an unowned café becomes owned by the person claiming it".
 -- Normal users still cannot reach that case: the row-level rule only lets them update cafés they already own.
 -- ============================================================================
+-- Safety check: stop with a clear message if migration-5 has not been run in THIS project.
+do $$ begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cafe_admin' and column_name = 'owner_email')
+     or not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cafes' and column_name = 'plan_tier') then
+    raise exception 'Run migration-5.sql first in THIS Supabase project (then migration-6, 7, 8). Use supabase/check_setup.sql to see what is missing.';
+  end if;
+end $$;
+
 create or replace function lock_cafe_fields() returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if not is_admin() then

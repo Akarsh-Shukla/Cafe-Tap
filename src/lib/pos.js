@@ -4,7 +4,7 @@ export const rupees = m => '₹' + (Number(m || 0) / 100).toLocaleString('en-IN'
 export const newKey = () => (crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '')).slice(0, 40)
 export const ago = t => { const m = Math.max(0, Math.round((Date.now() - new Date(t)) / 60000)); return m < 1 ? 'just now' : m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min' }
 export const clock = t => new Date(t).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-export const STATUS_LABEL = { received: 'Received', preparing: 'Preparing', ready: 'Ready', completed: 'Completed', cancelled: 'Cancelled' }
+export const STATUS_LABEL = { pending: 'Waiting for approval', received: 'Approved', preparing: 'Preparing', ready: 'Ready', completed: 'Completed', cancelled: 'Cancelled' }
 
 // Calls a database function and always returns { ok, reason, ... } so screens never crash on a network error.
 export async function rpc(name, args) {

@@ -16,9 +16,9 @@ const contact = WA ? `https://wa.me/${WA}?text=${encodeURIComponent('Hi, I’d l
 // What we offer. No prices are shown on the page, you talk them through with each café personally.
 const PLANS = [
   { name: 'Basic', tag: 'Available now', desc: 'A beautiful, personalised café page that guests open with a QR scan or an NFC tap.',
-    pts: ['Your own look: colours, fonts, illustrations', 'Menu with photos, veg marks and sold-out switch', 'Offers, guest Wi‑Fi, review link and private feedback', 'You edit prices and availability yourself', 'QR and NFC links, hosting and support'] },
-  { name: 'POS', tag: 'New · early access', hot: true, desc: 'Everything in Basic, plus optional table ordering and a simple counter workflow for your team.',
-    pts: ['Guests can order from their table (you switch it on)', 'Live order queue and a running bill for every table', 'Staff logins with permissions you choose', 'Cash and UPI recorded by your staff at the counter', 'Printable bills and daily sales summaries'],
+    pts: ['Your own look: colours, fonts, illustrations', 'Menu with photos, veg marks and sold-out switch', 'Offers, guest Wi‑Fi, review link and private feedback', 'You edit prices and availability yourself', 'A simple daily sales register for you and your staff (cash and UPI)', 'QR and NFC links, hosting and support'] },
+  { name: 'POS', tag: 'New · early access', hot: true, desc: 'Everything in Basic, plus optional table ordering and a simple counter and kitchen workflow for your team (sales are recorded automatically instead of by hand).',
+    pts: ['Guests can order from their table (you switch it on)', 'Your staff approve every order before it reaches the kitchen', 'A kitchen screen with a chime and voice alert for new orders', 'A running bill for every table and staff logins with permissions you choose', 'Cash and UPI recorded by your staff at the counter, printable bills and sales summaries'],
     note: 'Payment is collected at the counter. There is no online payment gateway, and CafeTap records what your staff confirm.' },
 ]
 const THEMES = [['roastery', 'Noir', 'Dark, brass, elegant', '#14100d', '#d9a752'], ['bakery', 'Blush', 'Soft, rounded, sweet', '#ffc7d4', '#e5557f'], ['chai', 'Citrus', 'Bold, loud, street', '#ffd23f', '#ff4d2e'], ['sage', 'Sage', 'Fresh green, cosy', '#cdd5bb', '#24402a'], ['mocha', 'Mocha', 'Warm cream and brown', '#3a1d0f', '#d9a752']]

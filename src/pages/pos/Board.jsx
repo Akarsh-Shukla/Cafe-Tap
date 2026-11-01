@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { rpc, rupees, ago, clock, newKey, STATUS_LABEL, MSG } from '../../lib/pos'
+import { readPrefs, notify } from '../../lib/alerts'
+import AlertBar from '../../components/AlertBar'
 
-const NEXT = { received: ['preparing', 'Start preparing'], preparing: ['ready', 'Mark ready'], ready: ['completed', 'Mark completed'] }
+const NEXT = { pending: ['received', 'Approve order'], received: ['preparing', 'Start preparing'], preparing: ['ready', 'Mark ready'], ready: ['completed', 'Mark completed'] }
 
 // Live table board for owner and staff. It polls every 8 seconds and only ever sees this café's rows (database rules).
 export default function Board({ cafe, perms }) {
   const [tables, setTables] = useState([]), [sess, setSess] = useState([]), [bills, setBills] = useState([]), [orders, setOrders] = useState([]), [items, setItems] = useState([]), [pays, setPays] = useState([])
-  const [sel, setSel] = useState(null), [msg, setMsg] = useState(''), [loaded, setLoaded] = useState(false)
+  const [sel, setSel] = useState(null), [msg, setMsg] = useState(''), [loaded, setLoaded] = useState(false), [prefs, setPrefs] = useState(readPrefs)
+  const seen = useRef(null)
   const load = useCallback(async () => {
     const t = await supabase.from('cafe_tables').select('id,display_name,is_active').eq('cafe_id', cafe.id).order('created_at')
     const s = await supabase.from('table_sessions').select('id,table_id,opened_at').eq('cafe_id', cafe.id).eq('status', 'open')
@@ -22,14 +25,23 @@ export default function Board({ cafe, perms }) {
     }
     setTables(t.data || []); setSess(s.data || []); setBills(b); setOrders(o); setItems(i); setPays(p); setLoaded(true)
   }, [cafe.id])
-  useEffect(() => { load(); const id = setInterval(() => { if (!document.hidden) load() }, 8000); return () => clearInterval(id) }, [load])
+  useEffect(() => { load(); const id = setInterval(() => { if (prefs.on || !document.hidden) load() }, prefs.on ? 5000 : 8000); return () => clearInterval(id) }, [load, prefs.on])
+  const tname = o => { const s = sess.find(x => x.id === o.session_id); return tables.find(t => t.id === s?.table_id)?.display_name || 'a table' }
+  const waiting = orders.filter(o => o.status === 'pending')
+  useEffect(() => {   // announce guest orders that arrive while this screen is open
+    if (!loaded) return
+    if (seen.current === null) { seen.current = new Set(waiting.map(o => o.id)); return }
+    const fresh = waiting.filter(o => !seen.current.has(o.id)); fresh.forEach(o => seen.current.add(o.id))
+    if (fresh.length) notify(prefs, 'New order', fresh.length === 1 ? `New order at ${tname(fresh[0])}. Please approve it.` : `${fresh.length} new orders are waiting for approval.`)
+  }, [orders, loaded])
+  useEffect(() => { document.title = waiting.length ? `(${waiting.length}) New order` : 'CafeTap'; return () => { document.title = 'CafeTap' } }, [waiting.length])
   const act = async p => { const r = await p; setMsg(r && r.ok === false ? (MSG[r.reason] || MSG.error) + (r.reason === 'unpaid' ? ' Balance: ' + rupees(r.balance_minor) : '') : ''); load(); return r }
 
   const view = t => {
     const s = sess.find(x => x.table_id === t.id), b = s && bills.find(x => x.session_id === s.id)
     const os = s ? orders.filter(o => o.session_id === s.id) : []
-    const live = os.some(o => ['received', 'preparing', 'ready'].includes(o.status)), bal = b ? b.total_minor - b.paid_minor : 0
-    const state = !s ? 'Available' : live ? 'Active' : bal > 0 ? 'Payment pending' : b && b.total_minor > 0 ? 'Paid, ready to close' : 'Open, no billable orders'
+    const live = os.some(o => ['pending', 'received', 'preparing', 'ready'].includes(o.status)), bal = b ? b.total_minor - b.paid_minor : 0
+    const state = !s ? 'Available' : os.some(o => o.status === 'pending') ? 'Needs approval' : live ? 'Active' : bal > 0 ? 'Payment pending' : b && b.total_minor > 0 ? 'Paid, ready to close' : 'Open, no billable orders'
     return { t, s, b, os, bal, state, live }
   }
   const cur = sel && view(tables.find(x => x.id === sel) || {})
@@ -37,12 +49,14 @@ export default function Board({ cafe, perms }) {
   if (cur && cur.t.id) return <Detail key={cur.t.id} cafe={cafe} perms={perms} v={cur} items={items} pays={pays} act={act} msg={msg} back={() => { setSel(null); setMsg('') }} />
   const act8 = tables.filter(t => t.is_active).map(view)
   return (<>
+    <AlertBar prefs={prefs} setPrefs={setPrefs} label="Order" />
+    {waiting.length > 0 && <p className="panel newwait" role="status"><b>{waiting.length} {waiting.length === 1 ? 'order is' : 'orders are'} waiting for your approval.</b> Open the table, check the order, then approve or reject it.</p>}
     <p className="muted">Updates every few seconds. Payment is collected at the counter and recorded by staff.</p>
     {!act8.length && <p className="panel">No tables yet. Ask CafeTap to add your tables.</p>}
     <div className="tboard">{act8.map(v => <button key={v.t.id} className={'tcell' + (v.s ? ' on' : '')} onClick={() => setSel(v.t.id)}>
       <b>{v.t.display_name}</b><span className="tstate">{v.state}</span>
       {v.s && <small>{v.os.filter(o => o.status !== 'cancelled').length} orders · {rupees(v.b?.total_minor)} · {ago(v.s.opened_at)}</small>}
-      {v.os.some(o => o.status === 'received') && <em className="newtag">New order</em>}</button>)}</div>
+      {v.os.some(o => o.status === 'pending') && <em className="newtag">New order</em>}</button>)}</div>
   </>)
 }
 
@@ -62,8 +76,9 @@ function Detail({ cafe, perms, v, items, pays, act, msg, back }) {
       <div className="row"><b>#{o.ref}</b><span className="muted">{clock(o.created_at)} · {o.source === 'staff' ? 'counter' : 'customer'}</span><span className="tstate">{STATUS_LABEL[o.status]}</span></div>
       {items.filter(i => i.order_id === o.id).map((i, k) => <div key={k} className="row"><span style={{ flex: 1 }}>{i.quantity} × {i.name_snapshot}</span><span>{rupees(i.line_total_minor)}</span></div>)}
       {o.note && <p className="muted">Note: {o.note}</p>}
+      {o.status === 'pending' && <p className="newwait"><b>Waiting for staff approval.</b> It is not on the bill or in the kitchen yet.</p>}
       {perms.orders && NEXT[o.status] && <div className="row"><button onClick={() => act(rpc('pos_set_order_status', { p_order: o.id, p_status: NEXT[o.status][0] }))}>{NEXT[o.status][1]}</button>
-        <button className="link danger" onClick={() => confirm('Cancel order #' + o.ref + '?') && act(rpc('pos_set_order_status', { p_order: o.id, p_status: 'cancelled' }))}>Cancel order</button></div>}
+        <button className="link danger" onClick={() => confirm((o.status === 'pending' ? 'Reject' : 'Cancel') + ' order #' + o.ref + '?') && act(rpc('pos_set_order_status', { p_order: o.id, p_status: 'cancelled' }))}>{o.status === 'pending' ? 'Reject order' : 'Cancel order'}</button></div>}
     </div>)}
     {b && <div className="panel"><h3 style={{ margin: 0 }}>Bill</h3>
       <div className="row"><span style={{ flex: 1 }}>Total</span><b>{rupees(b.total_minor)}</b></div>

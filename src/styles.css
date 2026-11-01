@@ -275,3 +275,10 @@ details.panel summary{font-family:Fraunces,serif;font-weight:600;cursor:pointer;
 .pgrid.two{grid-template-columns:1fr}@media(min-width:860px){.pgrid.two{grid-template-columns:repeat(2,1fr)}}.pnote{font-size:14px;opacity:.85;border-top:1px solid #8884;padding-top:12px;margin:16px 0 0}
 .lp .stickycta{display:block;position:fixed;right:20px;bottom:20px;left:auto;z-index:30;padding:13px 20px;border-radius:99px;background:var(--o);color:#fff;font-weight:700;text-decoration:none;box-shadow:0 14px 30px -12px #000a}
 @media(max-width:759px){.lp .stickycta{left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;padding:15px}.pgrid.two>*{flex:0 0 86%}}
+
+/* ===== v10: approval banner, kitchen screen, register, alert bar ===== */
+.newwait{padding:10px 14px;border-radius:14px;border-left:5px solid var(--or);background:color-mix(in srgb,var(--or) 14%,var(--sf))}
+.alertbar select{width:auto!important;margin:0!important}.alertbar .row{margin-bottom:6px}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.kcard{margin:0}.ktable{font-family:Fraunces,serif;font-size:24px}.kline{font-size:20px;padding:4px 0;border-bottom:1px dashed var(--bd)}.knote{font-weight:700}
+.kcard.k-received{border-color:var(--or)!important;box-shadow:0 0 0 2px #b9651a55}.kcard button{width:100%;margin-top:10px;min-height:52px;font-size:18px}
+.regrow .regf{flex:1;min-width:120px;display:block}.regtot{font-family:Fraunces,serif;font-size:20px;color:var(--ac);font-weight:700}

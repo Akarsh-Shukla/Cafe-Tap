@@ -19,6 +19,9 @@ export default function Privacy() {
       <li>You can always browse the menu without sharing your location.</li>
       <li>We keep your order (items, total and a reference), not your name or phone number. The café’s staff see the order and record your payment at the counter.</li>
       <li>A short-lived code kept in your browser tab links your device to your table for a limited time. It disappears when you close the tab.</li></ul>
+    <h2 style={{ fontSize: 24, margin: '28px 0 8px' }}>How long we keep things</h2>
+    <ul><li>Orders, bills, payment records, feedback and activity logs are deleted after 12 months. Visit counts are deleted after 120 days.</li>
+      <li>A café’s own sales register entries are kept for the café, which can export them at any time.</li></ul>
     <h2 style={{ fontSize: 24, margin: '28px 0 8px' }}>For café owners</h2>
     <ul><li>We store your email address, your café’s page content, menu, photos and settings.</li>
       <li>You can unpublish your page at any time, and ask us to export or delete your café and its data.</li>

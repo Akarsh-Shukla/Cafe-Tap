@@ -32,3 +32,9 @@ No control is "done" until it has evidence. Do not onboard a paying café on the
 - Staff logins are created by the platform operator in Supabase Auth, then permissions are given by the owner.
 - Polling every 8 seconds, not live push.
 - Bills are not GST tax invoices.
+
+## Added with approval, kitchen and alerts
+- Place a guest order from a real phone: it shows "Waiting for staff approval" on the staff board, is NOT on the bill, and does NOT appear on the kitchen screen.
+- Staff approve it: it appears on the kitchen screen and the bill total rises. Reject another one: it disappears and an empty table is released.
+- Alerts: turn on sound alerts on the staff device and on the kitchen device (tap once). Place an order and check you hear the chime and the voice within about 5 seconds. Test with the tab in the background and the screen locked: expect that alerts can be late or missing. Use a tablet that stays awake and unlocked.
+- Basic café: owner and a register-only staff member each enter cash and UPI for a day; the total adds up; the owner sees the change history; a POS café does not show the register.

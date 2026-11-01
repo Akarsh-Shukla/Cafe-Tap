@@ -1,0 +1,34 @@
+# Daily encrypted backup of your Supabase database (free GitHub Actions), then clears data past its retention period.
+# Setup: docs/BACKUPS_AND_HOSTING.md. Your repository MUST be private. Not yet run by the author: do a test run (Actions > Database backup > Run workflow) and a restore drill.
+name: Database backup
+on:
+  schedule:
+    - cron: '30 21 * * *'   # 03:00 India time
+  workflow_dispatch:
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install the PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Dump the database and encrypt it
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -e
+          pg_dump "$DB_URL" --no-owner --no-privileges --schema=public -Fc -f public.dump
+          # logins (best effort: skipped if the database role may not read the auth tables)
+          pg_dump "$DB_URL" --no-owner --no-privileges --data-only --table=auth.users --table=auth.identities -Fc -f auth.dump || echo "auth dump skipped"
+          tar -cf "backup-$(date +%F).tar" public.dump $(ls auth.dump 2>/dev/null)
+          gpg --batch --yes --passphrase "$PASS" --symmetric --cipher-algo AES256 -o "backup-$(date +%F).tar.gpg" "backup-$(date +%F).tar"
+          rm -f public.dump auth.dump backup-*.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cafetap-db-backup
+          path: backup-*.tar.gpg
+          retention-days: 30
+      - name: Delete data past its retention period and keep the project awake
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: psql "$DB_URL" -c "select purge_old_data();"

@@ -15,6 +15,10 @@ import OffersEd from '../../src/pages/dash/Offers.jsx'
 import Tables from '../../src/pages/dash/Tables.jsx'
 import Board, { Detail, AddOrder } from '../../src/pages/pos/Board.jsx'
 import Sales from '../../src/pages/pos/Sales.jsx'
+import Kitchen from '../../src/pages/pos/Kitchen.jsx'
+import Register from '../../src/pages/dash/Register.jsx'
+import StaffAccess from '../../src/pages/dash/StaffAccess.jsx'
+import AlertBar from '../../src/components/AlertBar.jsx'
 import PosSettings from '../../src/pages/pos/PosSettings.jsx'
 import { CartSheet, CartBar, Stepper } from '../../src/pages/Order.jsx'
 import DesignPreview from '../../src/components/DesignPreview.jsx'
@@ -59,6 +63,10 @@ const detailProps = { cafe: cafe(), perms: { orders: true, payments: true, close
 t('Board Detail', () => <Detail {...detailProps} />)
 t('Board Detail empty table', () => <Detail {...detailProps} v={{ t: { id: 't1', display_name: 'Table 1' }, s: undefined, b: undefined, os: [], bal: 0, state: 'Available', live: false }} />)
 t('AddOrder', () => <AddOrder cafe={cafe()} table={{ id: 't1', display_name: 'Table 1' }} act={async () => ({})} done={() => {}} />)
+t('Kitchen', () => <Kitchen cafe={cafe()} />); t('Register owner', () => <Register cafe={cafe({ plan_tier: 'basic' })} owner />); t('Register staff', () => <Register cafe={cafe({ plan_tier: 'basic' })} owner={false} />)
+t('StaffAccess POS', () => <StaffAccess cafe={cafe()} />); t('StaffAccess Basic', () => <StaffAccess cafe={cafe({ plan_tier: 'basic' })} />)
+t('AlertBar on/off', () => <><AlertBar prefs={{ on: true, mode: 'both' }} setPrefs={() => {}} label="Order" /><AlertBar prefs={{ on: false, mode: 'both' }} setPrefs={() => {}} label="Order" /></>)
+t('Workspace owner Basic', () => <Workspace cafe={cafe({ plan_tier: 'basic' })} uid="u" reload={() => {}} />)
 t('Sales', () => <Sales cafe={cafe()} />); t('PosSettings owner', () => <PosSettings cafe={cafe()} isAdmin={false} />); t('PosSettings admin', () => <PosSettings cafe={cafe()} isAdmin />)
 t('DesignPreview', () => <DesignPreview name="RSN" tagline="x" theme="sage" design={{ accent: '#123456', font: 'elegant', radius: 'round', art: '', greeting: '' }} />)
 t('Deck', () => <Deck items={[{ title: 'A', image: '/a.webp' }, { title: 'B', image: '/b.webp', caption: 'c' }]} />)

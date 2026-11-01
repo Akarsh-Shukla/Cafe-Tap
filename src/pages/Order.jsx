@@ -55,7 +55,7 @@ export function CartSheet({ cafe, ord, byId, open, onClose, onRefresh }) {
     const r = await rpc('pos_submit_order', { p_cap: cap.token, p_idem: idem.current, p_items: lines.map(l => ({ id: l.id, qty: l.qty })), p_note: note, p_expected: total })
     if (r.ok) {
       const refs = read(refsKey(cafe.id)) || []; write(refsKey(cafe.id), [r.ref, ...refs].slice(0, 10))
-      ord.setCart({}); setNote(''); setDone({ ref: r.ref, total: r.total_minor }); setStatus(r.status || 'received'); setSt('done'); idem.current = null; return
+      ord.setCart({}); setNote(''); setDone({ ref: r.ref, total: r.total_minor }); setStatus(r.status || 'pending'); setSt('done'); idem.current = null; return
     }
     if (r.reason === 'expired' && !retry) { try { sessionStorage.removeItem(capKey(cafe.id)) } catch {}; return place(true) }
     if (r.reason === 'price_changed') { onRefresh(); setSt('error'); setMsg('Prices changed while you were browsing. The new total is ' + rupees(r.total_minor) + '. Please review and place the order again.'); return }
@@ -72,9 +72,9 @@ export function CartSheet({ cafe, ord, byId, open, onClose, onRefresh }) {
         {st === 'done' && done ? <>
           <span className="script">Thank you</span><h3>Order {done.ref}</h3>
           <p className="price big">{rupees(done.total)}</p>
-          <p><b>Status:</b> {({ received: 'Received by the café', preparing: 'Being prepared', ready: 'Ready', completed: 'Completed', cancelled: 'Cancelled' })[status] || 'Received'}</p>
+          <p><b>Status:</b> {({ pending: 'Sent. Waiting for the café to confirm it', received: 'Confirmed by the café', preparing: 'Being prepared', ready: 'Ready', completed: 'Completed', cancelled: 'Not accepted by the café' })[status] || 'Sent. Waiting for the café to confirm it'}</p>
           <p className="badge">Pay at the counter · Payment pending</p>
-          <p className="mut small">Keep this reference: {done.ref}. Our staff record your payment when you pay.</p>
+          <p className="mut small">Keep this reference: {done.ref}. The café confirms your order first, then your staff record your payment when you pay at the counter.</p>
         </> : <>
           <span className="script">Table order</span><h3>Your order</h3>
           {!lines.length && <p className="mut">Your order is empty.</p>}

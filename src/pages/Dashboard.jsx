@@ -10,6 +10,9 @@ import Business from './dash/Business'
 import Board from './pos/Board'
 import Sales from './pos/Sales'
 import PosSettings from './pos/PosSettings'
+import Kitchen from './pos/Kitchen'
+import Register from './dash/Register'
+import StaffAccess from './dash/StaffAccess'
 
 export function Overview({ cafe, go, publish, isAdmin }) {
   const [counts, setCounts] = useState({}), [fb, setFb] = useState([]), [items, setItems] = useState(null)
@@ -45,7 +48,8 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
   const pos = cafe.plan_tier === 'pos' && !cafe.suspended
   // QR/NFC and billing are part of YOUR service, so only the admin sees them. Orders and sales are the café's private data: the admin never sees them.
   const tabs = [['overview', 'Home'], ['menu', 'Menu'], ['offers', 'Offers'], ['settings', 'My page'],
-    ...(pos && !isAdmin ? [['orders', 'Orders'], ['sales', 'Sales']] : []), ...(pos ? [['pos', 'POS setup']] : []),
+    ...(pos && !isAdmin ? [['orders', 'Orders'], ['kitchen', 'Kitchen'], ['sales', 'Sales']] : []), ...(!pos && !isAdmin && !cafe.suspended ? [['register', 'Sales register']] : []),
+    ...(!isAdmin && !cafe.suspended ? [['staff', 'Staff']] : []), ...(pos ? [['pos', 'POS setup']] : []),
     ...(isAdmin ? [['tables', 'QR & NFC'], ['business', 'Business']] : [])]
   const publish = async v => { await supabase.from('cafes').update({ published: v }).eq('id', cafe.id); reload() }
   return (<div className="dash">
@@ -61,22 +65,28 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
       {tab === 'offers' && <Offers cafe={cafe} />}
       {tab === 'settings' && <Settings cafe={cafe} uid={uid} reload={reload} />}
       {tab === 'orders' && pos && !isAdmin && <Board cafe={cafe} perms={{ orders: true, payments: true, close: true, owner: true }} />}
+      {tab === 'kitchen' && pos && !isAdmin && <Kitchen cafe={cafe} />}
       {tab === 'sales' && pos && !isAdmin && <Sales cafe={cafe} />}
-      {tab === 'pos' && pos && <PosSettings cafe={cafe} isAdmin={isAdmin} />}
+      {tab === 'register' && !pos && !isAdmin && <Register cafe={cafe} owner />}
+      {tab === 'staff' && !isAdmin && <StaffAccess cafe={cafe} />}
+      {tab === 'pos' && pos && <PosSettings cafe={cafe} />}
       {isAdmin && tab === 'tables' && <Tables cafe={cafe} />}
       {isAdmin && tab === 'business' && <Business cafe={cafe} reload={reload} onDeleted={onBack} />}
     </div></div>)
 }
 
 function StaffWorkspace({ cafe, member }) {
-  const tabs = [...(member.can_orders ? [['orders', 'Orders']] : []), ...(member.can_reports ? [['sales', 'Sales']] : [])]
+  const pos = cafe.plan_tier === 'pos'
+  const tabs = [...(pos && member.can_orders ? [['orders', 'Orders']] : []), ...(pos && member.can_kitchen ? [['kitchen', 'Kitchen']] : []), ...(pos && member.can_reports ? [['sales', 'Sales']] : []), ...(!pos && member.can_register ? [['register', 'Sales register']] : [])]
   const [tab, setTab] = useState(tabs[0]?.[0])
   return (<div className="dash"><header className="top"><span className="lg">CafeTap</span><span><a href="/welcome">Change password</a> · <button className="link" onClick={() => supabase.auth.signOut()}>Log out</button></span></header>
     <section className="greet"><div><span className="script">Staff</span><h1>{cafe.name}</h1></div></section>
     <div className="tabwrap"><nav className="tabs">{tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</nav></div>
     <div className="pad">{!tabs.length && <p className="panel">You don’t have any permissions yet. Ask the café owner.</p>}
       {tab === 'orders' && <Board cafe={cafe} perms={{ orders: member.can_orders, payments: member.can_payments, close: member.can_close, owner: false }} />}
-      {tab === 'sales' && <Sales cafe={cafe} />}</div></div>)
+      {tab === 'kitchen' && <Kitchen cafe={cafe} />}
+      {tab === 'sales' && <Sales cafe={cafe} />}
+      {tab === 'register' && <Register cafe={cafe} owner={false} />}</div></div>)
 }
 
 export default function Dashboard() {
@@ -98,7 +108,7 @@ export default function Dashboard() {
   if (session === undefined || (session && st.loading)) return <p className="dash pad">Loading…</p>
   if (!session) return <Navigate to="/login" replace />
   if (st.admin) return <Navigate to="/admin" replace />
-  if (!st.cafe || (st.staff && st.cafe.plan_tier !== 'pos')) return (<main className="dash auth"><span className="lg dk">CafeTap</span><h1>Your page isn’t ready yet</h1>
+  if (!st.cafe || (st.staff && !(st.cafe.plan_tier === 'pos' || (st.cafe.plan_tier === 'basic' && st.staff.can_register)))) return (<main className="dash auth"><span className="lg dk">CafeTap</span><h1>Your page isn’t ready yet</h1>
     <p>You are signed in as <b>{session.user.email}</b>. CafeTap must have registered exactly this email for your café. If it is a different email, log out and sign in with that one; otherwise please contact CafeTap.</p>
     <button onClick={() => supabase.auth.signOut()}>Log out</button></main>)
   if (st.staff) return <StaffWorkspace cafe={st.cafe} member={st.staff} />
