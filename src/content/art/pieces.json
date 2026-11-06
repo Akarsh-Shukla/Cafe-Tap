@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ART-001",
+    "file": "01-birds-and-butterfly.webp",
+    "title": "Birds and butterfly",
+    "story": "Three small paintings: a blue songbird among flowers, two parrots on a branch, and a monarch butterfly in a round frame.",
+    "by": "@cosmicshades_",
+    "seller": "By the artist @cosmicshades_",
+    "w": 1200,
+    "h": 950
+  },
+  {
+    "id": "ART-002",
+    "file": "02-kanpur-city-of-legacy.webp",
+    "title": "Kanpur, the city of legacy",
+    "story": "An illustrated tribute to Kanpur: J.K. Temple, Ganga Ghat, Kanpur Central and the Mill Clock Tower.",
+    "by": "@cosmicshades_",
+    "seller": "By the artist @cosmicshades_",
+    "w": 1080,
+    "h": 1076
+  },
+  {
+    "id": "ART-003",
+    "file": "03-nine-wildlife-panels.webp",
+    "title": "Nine wildlife panels",
+    "story": "Koi, butterfly, sparrow, ducks, lion, turtle, deer, red panda and peacock, painted as one square.",
+    "by": "@cosmicshades_",
+    "seller": "By the artist @cosmicshades_",
+    "w": 812,
+    "h": 902
+  }
+]

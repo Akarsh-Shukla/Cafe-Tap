@@ -1,0 +1,23 @@
+{
+  "01-arch-table-stand.webp": {
+    "title": "Arch table stand",
+    "caption": "Olive pattern, your café name and table number",
+    "alt": "Arched acrylic table stand with the CafeTap logo, Table 5 and a QR code",
+    "w": 884,
+    "h": 886
+  },
+  "02-garden-pair.webp": {
+    "title": "Garden pair",
+    "caption": "Pink and mint stands with tropical flowers and parrots",
+    "alt": "Two table stands, one pink and one mint green, with QR codes, hibiscus flowers and parrots",
+    "w": 886,
+    "h": 886
+  },
+  "03-fresh-cooler-pair.webp": {
+    "title": "Fresh cooler pair",
+    "caption": "Cocktail-shaped stands numbered for each table",
+    "alt": "Two glass-shaped table stands, lemonade yellow and mint green, numbered Tap 4 and Tap 5 with QR codes",
+    "w": 1200,
+    "h": 1200
+  }
+}

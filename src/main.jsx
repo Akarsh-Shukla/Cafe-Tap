@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Admin from './pages/Admin.jsx'
 import Landing from './pages/Landing.jsx'
 import Privacy from './pages/Privacy.jsx'
+import Terms from './pages/Terms.jsx'
 import Welcome from './pages/Welcome.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './styles.css'
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')).render(
     <Route path="/" element={<Landing />} />
     <Route path="/login" element={<Login />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/terms" element={<Terms />} />
     <Route path="/welcome" element={<Welcome />} />
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/admin" element={<Admin />} />
