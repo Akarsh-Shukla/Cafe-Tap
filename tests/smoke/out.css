@@ -48,10 +48,10 @@
 .lx img {
   max-width: 100%;
 }
-.lx a {
+.lx :where(a) {
   color: inherit;
 }
-.lx button {
+.lx :where(button) {
   font: inherit;
   color: inherit;
 }

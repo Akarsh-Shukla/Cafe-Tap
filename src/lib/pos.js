@@ -44,5 +44,6 @@ export const MSG = {
   no_account: 'No confirmed login exists for that email. Ask CafeTap to create the login first.',
   other_cafe: 'That person already works for another café.',
   limit: 'Staff limit reached.',
+  past_date_locked: 'Sales records older than yesterday can only be modified by the café owner.',
   range: 'Choose a range of up to 92 days.',
 }

@@ -17,5 +17,5 @@ Landing artwork: add real files to public/showcase and public/art and list them 
 See docs/POS_TEST_PLAN.md before using POS with a real café.
 
 ## v10
-Run migration-9.sql (after 5 to 8). New: staff approve every guest order, kitchen screen, sound and voice alerts, daily sales register for Basic cafés, staff logins for both plans, 12-month retention (docs/BACKUPS_AND_HOSTING.md). Host on Cloudflare Pages (see that document).
+Run migration-9.sql (after 5 to 8), then migration-10.sql. New: staff approve every guest order, kitchen screen, sound and voice alerts, daily sales register for Basic cafés, staff logins for both plans, 12-month retention (docs/BACKUPS_AND_HOSTING.md). Migration-10 adds security hardening: automatic capability revocation on table close, atomic owner unlinking, staff account deletion, and historical sales register time-locks. Host on Cloudflare Pages (see that document).
 `npm run smoke` renders every screen once and must print FAILED: 0.

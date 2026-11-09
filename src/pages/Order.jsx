@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { rpc, rupees, newKey, getPosition, MSG } from '../lib/pos'
+import DigitalBill from '../components/DigitalBill.jsx'
 
 const capKey = id => 'ct_cap_' + id, refsKey = id => 'ct_refs_' + id
 const read = k => { try { return JSON.parse(sessionStorage.getItem(k)) } catch { return null } }
@@ -28,14 +29,25 @@ export function CartBar({ ord, byId, onOpen }) {
 
 export function CartSheet({ cafe, ord, byId, open, onClose, onRefresh }) {
   const [st, setSt] = useState('idle'), [msg, setMsg] = useState(''), [note, setNote] = useState(''), [done, setDone] = useState(null), [status, setStatus] = useState(null)
+  const [orderData, setOrderData] = useState(null), [showBill, setShowBill] = useState(false)
   const idem = useRef(null)
   const lines = Object.entries(ord.cart).map(([id, qty]) => ({ id, qty, item: byId[id] })).filter(l => l.item)
   const total = lines.reduce((s, l) => s + l.item.price_paise * l.qty, 0)
   useEffect(() => { idem.current = null }, [JSON.stringify(ord.cart), note])   // a changed order gets a new duplicate-protection key
   useEffect(() => {   // poll the safe status of the order just placed
     if (!done) return
-    const t = () => { const cap = read(capKey(cafe.id)); if (cap) rpc('pos_order_status', { p_cap: cap.token, p_ref: done.ref }).then(r => r.status && setStatus(r.status)) }
-    t(); const id = setInterval(t, 10000); return () => clearInterval(id)
+    const t = () => {
+      const cap = read(capKey(cafe.id))
+      if (cap) {
+        rpc('pos_order_status', { p_cap: cap.token, p_ref: done.ref }).then(r => {
+          if (r && r.status) {
+            setStatus(r.status)
+            setOrderData(r)
+          }
+        })
+      }
+    }
+    t(); const id = setInterval(t, 6000); return () => clearInterval(id)
   }, [done, cafe.id])
 
   const place = async (retry = false) => {
@@ -70,11 +82,26 @@ export function CartSheet({ cafe, ord, byId, open, onClose, onRefresh }) {
       <div className="sheetbody">
         <button className="x" onClick={close} aria-label="Close">×</button>
         {st === 'done' && done ? <>
-          <span className="script">Thank you</span><h3>Order {done.ref}</h3>
-          <p className="price big">{rupees(done.total)}</p>
-          <p><b>Status:</b> {({ pending: 'Sent. Waiting for the café to confirm it', received: 'Confirmed by the café', preparing: 'Being prepared', ready: 'Ready', completed: 'Completed', cancelled: 'Not accepted by the café' })[status] || 'Sent. Waiting for the café to confirm it'}</p>
-          <p className="badge">Pay at the counter · Payment pending</p>
-          <p className="mut small">Keep this reference: {done.ref}. The café confirms your order first, then your staff record your payment when you pay at the counter.</p>
+          <span className="script">Thank you</span><h3>Order #{done.ref}</h3>
+          <p className="price big">{rupees(orderData?.bill_total_minor || done.total)}</p>
+          <p><b>Status:</b> {({ pending: 'Sent. Waiting for café to confirm', received: 'Confirmed by the café', preparing: 'Being prepared', ready: 'Ready to serve', completed: 'Completed', cancelled: 'Not accepted by café' })[status] || 'Sent. Waiting for café to confirm'}</p>
+          {orderData?.is_paid ? (
+            <div className="pay-done-box">
+              <span className="bill-status-pill paid" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 14px' }}>
+                ✓ Paid at counter ({(orderData.payment_method || 'CONFIRMED').toUpperCase()})
+              </span>
+              <p className="mut small" style={{ marginTop: '8px' }}>Your payment has been received and verified by the café team. Thank you!</p>
+              <button className="btn" style={{ width: '100%', marginTop: '10px' }} onClick={() => setShowBill(true)}>📄 View Digital Receipt / Bill</button>
+            </div>
+          ) : (
+            <div className="pay-wait-box">
+              <span className="bill-status-pill pending" style={{ display: 'inline-block', fontSize: '13px', padding: '6px 14px' }}>
+                Pay at counter · Payment pending
+              </span>
+              <p className="mut small" style={{ marginTop: '8px' }}>Keep this reference: <b>#{done.ref}</b>. Staff will confirm your order and record your payment at the counter.</p>
+              <button className="ghost" style={{ width: '100%', marginTop: '10px' }} onClick={() => setShowBill(true)}>Preview Bill</button>
+            </div>
+          )}
         </> : <>
           <span className="script">Table order</span><h3>Your order</h3>
           {!lines.length && <p className="mut">Your order is empty.</p>}
@@ -89,5 +116,19 @@ export function CartSheet({ cafe, ord, byId, open, onClose, onRefresh }) {
         </>}
       </div>
     </div>
+    {showBill && (
+      <DigitalBill
+        cafe={cafe}
+        data={orderData || {
+          ref: done?.ref,
+          order_total_minor: done?.total || total,
+          bill_total_minor: done?.total || total,
+          table_name: ord.table ? 'Table' : 'Dine-In',
+          items: lines.map(l => ({ name: l.item.name, qty: l.qty, price_minor: l.item.price_paise, line_total_minor: l.item.price_paise * l.qty })),
+          is_paid: false
+        }}
+        onClose={() => setShowBill(false)}
+      />
+    )}
   </>)
 }

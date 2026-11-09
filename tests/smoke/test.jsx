@@ -22,6 +22,7 @@ import AlertBar from '../../src/components/AlertBar.jsx'
 import PosSettings from '../../src/pages/pos/PosSettings.jsx'
 import { CartSheet, CartBar, Stepper } from '../../src/pages/Order.jsx'
 import DesignPreview from '../../src/components/DesignPreview.jsx'
+import DigitalBill from '../../src/components/DigitalBill.jsx'
 import { Deck, ArtShop } from '../../src/components/Showcase.jsx'
 import Art from '../../src/components/Art.jsx'
 import ErrorBoundary from '../../src/components/ErrorBoundary.jsx'
@@ -69,6 +70,8 @@ t('AlertBar on/off', () => <><AlertBar prefs={{ on: true, mode: 'both' }} setPre
 t('Workspace owner Basic', () => <Workspace cafe={cafe({ plan_tier: 'basic' })} uid="u" reload={() => {}} />)
 t('Sales', () => <Sales cafe={cafe()} />); t('PosSettings owner', () => <PosSettings cafe={cafe()} isAdmin={false} />); t('PosSettings admin', () => <PosSettings cafe={cafe()} isAdmin />)
 t('DesignPreview', () => <DesignPreview name="RSN" tagline="x" theme="sage" design={{ accent: '#123456', font: 'elegant', radius: 'round', art: '', greeting: '' }} />)
+t('DigitalBill paid', () => <DigitalBill cafe={cafe()} data={{ ref: 'A1B2C3', is_paid: true, payment_method: 'upi', order_total_minor: 5000, items: [{ name: 'Chai', qty: 2, price_minor: 2500, line_total_minor: 5000 }], tax_enabled: true, tax_percent: 5, tax_name: 'GST' }} onClose={() => {}} />)
+t('DigitalBill pending', () => <DigitalBill cafe={cafe()} data={{ ref: 'A1B2C3', is_paid: false, order_total_minor: 3000, items: [{ name: 'Coffee', qty: 1, price_minor: 3000, line_total_minor: 3000 }] }} onClose={() => {}} />)
 t('Deck', () => <Deck items={[{ title: 'A', image: '/a.webp' }, { title: 'B', image: '/b.webp', caption: 'c' }]} />)
 t('ArtShop', () => <ArtShop items={[{ id: 'A1', title: 'Piece', image: '/a.webp', seller: 'By the artist', available: true, price: '₹4,500' }]} hrefFor={s => '#' + s} />)
 t('ErrorBoundary', () => <ErrorBoundary><Home /></ErrorBoundary>)

@@ -23,7 +23,22 @@ export function notify(prefs, title, text) {
   if (!prefs.on) return
   if (prefs.mode !== 'voice') chime()
   if (prefs.mode !== 'chime') setTimeout(() => speak(text), prefs.mode === 'both' ? 800 : 0)
-  try { if (document.hidden && 'Notification' in window && Notification.permission === 'granted') new Notification(title, { body: text }) } catch {}
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(reg => reg.showNotification(title, {
+          body: text,
+          icon: '/icons/icon.svg',
+          badge: '/icons/icon.svg',
+          vibrate: [200, 100, 200],
+          tag: 'cafetap-order-notification',
+          renotify: true
+        })).catch(() => new Notification(title, { body: text, icon: '/icons/icon.svg' }))
+      } else {
+        new Notification(title, { body: text, icon: '/icons/icon.svg' })
+      }
+    }
+  } catch {}
 }
 let lock = null
 export async function keepAwake(on) {

@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { rpc, rupees, ago, clock, newKey, STATUS_LABEL, MSG } from '../../lib/pos'
 import { readPrefs, notify } from '../../lib/alerts'
 import AlertBar from '../../components/AlertBar'
+import DigitalBill from '../../components/DigitalBill'
 
 const NEXT = { pending: ['received', 'Approve order'], received: ['preparing', 'Start preparing'], preparing: ['ready', 'Mark ready'], ready: ['completed', 'Mark completed'] }
 
@@ -63,7 +64,9 @@ export default function Board({ cafe, perms }) {
 function Detail({ cafe, perms, v, items, pays, act, msg, back }) {
   const { t, s, b, os, bal } = v
   const [amt, setAmt] = useState(''), [method, setMethod] = useState('cash'), [note, setNote] = useState(''), [adding, setAdding] = useState(false)
+  const [posSettings, setPosSettings] = useState(null), [viewBill, setViewBill] = useState(false)
   useEffect(() => { setAmt(bal > 0 ? String(bal / 100) : '') }, [bal])
+  useEffect(() => { supabase.from('cafe_pos_settings').select('*').eq('cafe_id', cafe.id).maybeSingle().then(({ data }) => data && setPosSettings(data)) }, [cafe.id])
   const bp = b ? pays.filter(p => p.bill_id === b.id) : []
   const pay = async () => { const m = Math.round(parseFloat(amt || 0) * 100); await act(rpc('pos_record_payment', { p_bill: b.id, p_amount: m, p_method: method, p_note: note })); setNote('') }
   const close = () => { if (confirm(`Close ${t.display_name}? Make sure the payment has been received. A new group will start a fresh bill.`)) act(rpc('pos_close_session', { p_session: s.id })).then(r => r?.ok && back()) }
@@ -90,15 +93,38 @@ function Detail({ cafe, perms, v, items, pays, act, msg, back }) {
         <label>Method (check the money or your UPI app first)</label><select value={method} onChange={e => setMethod(e.target.value)}><option value="cash">Cash</option><option value="upi">UPI (confirmed in my app)</option></select>
         <input placeholder="Note (optional)" maxLength={140} value={note} onChange={e => setNote(e.target.value)} /><button onClick={pay}>Record payment</button></div>}
       <p className="muted">CafeTap records what your staff confirm. It does not verify UPI or cash itself.</p>
-      <div className="row"><button className="ghost" onClick={() => { document.body.classList.add('printing-bill'); window.print(); setTimeout(() => document.body.classList.remove('printing-bill'), 800) }}>Print bill</button>
-        {perms.close && <button onClick={close} disabled={bal > 0}>{bal > 0 ? 'Settle balance to close' : 'Close table'}</button>}</div>
+      <div className="row">
+        <button className="ghost" onClick={() => setViewBill(true)}>📄 View / Print Digital Bill</button>
+        {perms.close && <button onClick={close} disabled={bal > 0}>{bal > 0 ? 'Settle balance to close' : 'Close table'}</button>}
+      </div>
     </div>}
     {perms.orders && !adding && <button className="ghost" onClick={() => setAdding(true)}>+ Add counter order</button>}
     {adding && <AddOrder cafe={cafe} table={t} act={act} done={() => setAdding(false)} />}
-    {b && <div className="bill-print"><b>{cafe.name}</b><div>{t.display_name} · {new Date(s.opened_at).toLocaleString('en-IN')}</div><hr />
-      {os.filter(o => o.status !== 'cancelled').map(o => items.filter(i => i.order_id === o.id).map((i, k) => <div key={o.id + k} className="bl"><span>{i.quantity} x {i.name_snapshot}</span><span>{rupees(i.line_total_minor)}</span></div>))}
-      <hr /><div className="bl"><b>Total</b><b>{rupees(b.total_minor)}</b></div><div className="bl"><span>Paid</span><span>{rupees(b.paid_minor)}</span></div><div className="bl"><span>Balance</span><span>{rupees(bal)}</span></div><hr />
-      <div>Payment recorded by staff at the counter. This is not a GST tax invoice.</div></div>}
+    {b && viewBill && (
+      <DigitalBill
+        cafe={cafe}
+        data={{
+          ref: os[0]?.ref || b.id.slice(0, 6).toUpperCase(),
+          created_at: s.opened_at,
+          table_name: t.display_name,
+          order_total_minor: b.total_minor,
+          bill_total_minor: b.total_minor,
+          paid_minor: b.paid_minor,
+          is_paid: bal === 0 && b.total_minor > 0,
+          payment_method: bp[bp.length - 1]?.method || 'Cash',
+          items: os.filter(o => o.status !== 'cancelled').flatMap(o => items.filter(i => i.order_id === o.id).map(i => ({ name: i.name_snapshot, qty: i.quantity, price_minor: Math.round(i.line_total_minor / (i.quantity || 1)), line_total_minor: i.line_total_minor }))),
+          tax_enabled: posSettings?.tax_enabled,
+          tax_name: posSettings?.tax_name,
+          tax_percent: posSettings?.tax_percent,
+          business_reg_no: posSettings?.business_reg_no,
+          receipt_note: posSettings?.receipt_note,
+          cafe_name: cafe.name,
+          cafe_address: cafe.settings?.address,
+          cafe_phone: cafe.settings?.phone
+        }}
+        onClose={() => setViewBill(false)}
+      />
+    )}
   </div>)
 }
 

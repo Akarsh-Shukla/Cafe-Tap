@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="ctGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2421"/>
+      <stop offset="100%" stop-color="#141110"/>
+    </linearGradient>
+    <linearGradient id="cupGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d4a373"/>
+      <stop offset="100%" stop-color="#bc6c25"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#ctGrad)"/>
+  <circle cx="256" cy="256" r="190" stroke="#d4a373" stroke-width="6" stroke-dasharray="16 12" fill="none" opacity="0.3"/>
+  <path d="M160 210h160v80a80 80 0 0 1-80 80h0a80 80 0 0 1-80-80v-80z" fill="url(#cupGrad)"/>
+  <path d="M320 230h24a40 40 0 0 1 0 80h-24v-20h24a20 20 0 0 0 0-40h-24v-20z" fill="#d4a373"/>
+  <path d="M190 140c-10 20 10 35 0 55M256 125c-10 25 10 40 0 70M322 140c-10 20 10 35 0 55" stroke="#faedcd" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.85"/>
+  <rect x="130" y="385" width="220" height="20" rx="10" fill="#d4a373" opacity="0.9"/>
+  <text x="256" y="445" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="700" fill="#faedcd" text-anchor="middle" letter-spacing="4">CAFETAP</text>
+</svg>

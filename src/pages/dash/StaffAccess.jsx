@@ -16,13 +16,20 @@ export default function StaffAccess({ cafe }) {
     const a = { p_member: m.id, p_orders: null, p_payments: null, p_close: null, p_reports: null, p_kitchen: null, p_register: null, p_active: null }; a['p_' + k] = v
     await rpc('staff_update', a); load()
   }
+  const rem = async m => {
+    if (confirm(`Remove ${m.email} from your staff? They will lose access completely.`)) {
+      const r = await rpc('staff_remove', { p_cafe: cafe.id, p_member: m.id })
+      if (!r.ok) setMsg(MSG[r.reason] || MSG.error)
+      load()
+    }
+  }
   return (<>
     <div className="panel"><h2 style={{ marginTop: 0 }}>Your staff</h2>
-      <p className="muted">CafeTap creates each staff login first. Then add their email here and choose what they may do. Turn access off when someone leaves.</p>
+      <p className="muted">CafeTap creates each staff login first. Then add their email here and choose what they may do. Turn access off or remove someone when they leave.</p>
       {!staff.length && <p className="muted">No staff yet.</p>}
       {staff.map(m => <div key={m.id} className="sub"><b>{m.email}</b> {!m.active && <span className="muted">(access off)</span>}
         {PERMS.map(([k, l]) => <label key={k} className="chk"><input type="checkbox" checked={!!m[k]} onChange={e => upd(m, k, e.target.checked)} /> {l}</label>)}
-        <button className="link" onClick={() => upd(m, 'active', !m.active)}>{m.active ? 'Turn access off' : 'Turn access on'}</button></div>)}</div>
+        <button className="link" onClick={() => upd(m, 'active', !m.active)}>{m.active ? 'Turn access off' : 'Turn access on'}</button> · <button className="link danger" onClick={() => rem(m)}>Remove</button></div>)}</div>
     <div className="panel"><h2 style={{ marginTop: 0 }}>Add staff</h2>
       <input type="email" placeholder="staff@example.com" value={email} onChange={e => setEmail(e.target.value)} />
       {PERMS.map(([k, l]) => <label key={k} className="chk"><input type="checkbox" checked={!!p[k]} onChange={e => setP({ ...p, [k]: e.target.checked })} /> {l}</label>)}

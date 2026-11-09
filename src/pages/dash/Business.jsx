@@ -17,7 +17,17 @@ export default function Business({ cafe, reload, onDeleted }) {
     const r2 = await supabase.from('cafes').update({ slug: s, plan_tier: f.tier, suspended: f.suspended }).eq('id', cafe.id)
     const er = r1.error || r2.error; setMsg(er ? er.message : 'Saved'); reload()
   }
-  const unlink = async () => { if (confirm('Disconnect the current owner login? They will lose access.')) { await supabase.from('cafes').update({ owner_id: null }).eq('id', cafe.id); reload() } }
+  const unlink = async () => {
+    if (confirm('Disconnect the current owner login? They will lose access.')) {
+      const { error } = await supabase.rpc('admin_unlink_owner', { p_cafe: cafe.id })
+      if (error) {
+        await supabase.from('cafes').update({ owner_id: null }).eq('id', cafe.id)
+        await supabase.from('cafe_admin').update({ owner_email: null }).eq('cafe_id', cafe.id)
+      }
+      setF(prev => ({ ...prev, email: '' }))
+      reload()
+    }
+  }
   const del = async () => { if (prompt('This deletes the café and all its data. Type its web address to confirm: ' + cafe.slug) === cafe.slug) { await supabase.from('cafes').delete().eq('id', cafe.id); reload(); onDeleted() } }
   return (<form onSubmit={save}>
     <p className="muted">Only you can see this tab. Owners never see billing, notes or QR codes.</p>

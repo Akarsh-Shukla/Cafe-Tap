@@ -9,4 +9,5 @@ select step, applied from (
   union all select 5, 'migration-7 (owner login status)', exists (select 1 from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = 'admin_owner_login_status')
   union all select 7, 'migration-9 (approval, kitchen, register)', exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'cafe_members' and column_name = 'can_kitchen')
   union all select 6, 'migration-8 (owner linking fix)', coalesce((select pg_get_functiondef(p.oid) like '%old.owner_id is null%' from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = 'lock_cafe_fields' limit 1), false)
+  union all select 8, 'migration-10 (security & capability revoke)', exists (select 1 from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = 'admin_unlink_owner')
 ) t order by n;
