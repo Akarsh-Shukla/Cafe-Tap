@@ -13,3 +13,10 @@ export const BrowserRouter = ({ children }) => children
 export const Routes = ({ children }) => children
 export const Route = () => null
 export const QRCodeSVG = () => React.createElement('svg')
+export class QRCodeStyling {
+  constructor(opts) { this.opts = opts }
+  append(el) {}
+  update(opts) {}
+  download() {}
+}
+export default QRCodeStyling

@@ -48,6 +48,7 @@ esbuild.build({
     'react-router-dom': stubs,
     '@supabase/supabase-js': stubs,
     'qrcode.react': stubs,
+    'qr-code-styling': stubs,
   },
 
   plugins: [viteGlobSmokePlugin],

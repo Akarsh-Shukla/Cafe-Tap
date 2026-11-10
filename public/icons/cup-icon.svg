@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="cupGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d0b5"/>
+      <stop offset="40%" stop-color="#d49b7d"/>
+      <stop offset="100%" stop-color="#a8684a"/>
+    </linearGradient>
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Circular Badge Backdrop for QR Center Visibility -->
+  <circle cx="100" cy="100" r="92" fill="#181615" stroke="url(#cupGold)" stroke-width="4.5" filter="url(#badgeShadow)"/>
+  
+  <!-- Outer decorative ring -->
+  <circle cx="100" cy="100" r="84" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+  <!-- Upper Cloche Handle Knob -->
+  <circle cx="100" cy="38" r="7.5" fill="url(#cupGold)"/>
+
+  <!-- Upper Cloche Dome Arch -->
+  <path d="M 46 76 C 47 43, 72 38, 92 38 L 108 38 C 128 38, 153 43, 154 76 C 144 74, 137 63, 122 57 C 108 52, 92 52, 78 57 C 63 63, 56 74, 46 76 Z" fill="url(#cupGold)"/>
+
+  <!-- Rising Steam Curls -->
+  <path d="M 90 86 C 85 78, 89 72, 95 68 C 91 74, 93 80, 90 86 Z" fill="url(#cupGold)"/>
+  <path d="M 106 86 C 100 76, 106 68, 114 64 C 108 70, 110 78, 106 86 Z" fill="url(#cupGold)"/>
+
+  <!-- Modern Coffee Cup Body -->
+  <path d="M 64 94 L 136 94 C 136 126, 119 136, 100 136 C 81 136, 64 126, 64 94 Z" fill="none" stroke="url(#cupGold)" stroke-width="5" stroke-linejoin="round"/>
+  
+  <!-- Cup Inner liquid line -->
+  <path d="M 70 100 C 80 104, 120 104, 130 100" fill="none" stroke="url(#cupGold)" stroke-width="2.5"/>
+
+  <!-- Cup Handle (Right) -->
+  <path d="M 134 98 C 151 98, 151 122, 132 124" fill="none" stroke="url(#cupGold)" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Saucer Underneath -->
+  <path d="M 48 144 C 48 154, 152 154, 152 144 C 152 140, 48 140, 48 144 Z" fill="url(#cupGold)"/>
+</svg>
