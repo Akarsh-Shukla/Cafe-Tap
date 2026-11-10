@@ -116,16 +116,16 @@ const Diet = ({ d }) => d ? <i className={'diet ' + d} role="img" aria-label={DI
 const Ph = ({ i }) => <div className="ph">{okImg(i.image_url) ? <img src={okImg(i.image_url)} alt="" loading="lazy" /> : <Art kind={artKind(i.name, i._cat)} />}
   {i.badge && <em className="bdg">{BADGE[i.badge]}</em>}{!i.is_available && <em className="bdg" style={{ top: 'auto', bottom: 10, background: '#555', color: '#fff' }}>Sold out</em>}</div>
 const Card = ({ i, cls, onOpen, fav, toggle, ord, k = 9 }) => <div className={cls + (i.is_available ? '' : ' out')} style={{ '--k': Math.min(k, 8) }}>
-  <button className="cm" onClick={() => onOpen(i)}><Ph i={i} /><div className="cb"><b><Diet d={i.diet} />{i.name}</b>{i.description && <small>{i.description}</small>}<span className="price">{inr(i.price_paise)}</span>{ord.can && i.is_available && <span className="stepgap" />}</div></button>
+  <button className="cm" onClick={() => onOpen(i)}><Ph i={i} /><div className="cb"><b><Diet d={i.diet} />{i.name}{i.is_combo && <span className="pill2" style={{ background: 'var(--a, #e65100)', color: '#fff', marginLeft: '6px' }}>Combo</span>}</b>{i.description && <small>{i.description}</small>}<span className="price">{inr(i.price_paise)}</span>{ord.can && i.is_available && <span className="stepgap" />}</div></button>
   <button className={'heart' + (fav ? ' on' : '')} onClick={() => toggle(i.id)} aria-pressed={fav} aria-label={fav ? 'Remove from saved' : 'Save this dish'}><Ic n="heart" s={20} /></button>
-  {ord.can && i.is_available && <Stepper qty={ord.cart[i.id] || 0} onAdd={() => ord.add(i.id)} onSub={() => ord.sub(i.id)} name={i.name} />}</div>
+  {ord.can && i.is_available && <Stepper qty={ord.cart[i.id] || 0} onAdd={() => ((i.add_ons && i.add_ons.length > 0) ? onOpen(i) : ord.add(i.id))} onSub={() => ord.sub(i.id)} name={i.name} />}</div>
 
 export function MenuPage() {
   const { cafe, slug } = useOutletContext(), ord = useOrdering(cafe)
-  const [cats, setCats] = useState(null), [failed, setFailed] = useState(false), [q, setQ] = useState(''), [active, setActive] = useState(''), [sel, setSel] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState('grid'), [offer, setOffer] = useState(null), [veg, setVeg] = useState(false), [saved, setSaved] = useState(false), [cartOpen, setCartOpen] = useState(false)
+  const [cats, setCats] = useState(null), [failed, setFailed] = useState(false), [q, setQ] = useState(''), [active, setActive] = useState(''), [sel, setSel] = useState(null), [selectedAddons, setSelectedAddons] = useState([]), [open, setOpen] = useState(false), [view, setView] = useState('grid'), [offer, setOffer] = useState(null), [veg, setVeg] = useState(false), [saved, setSaved] = useState(false), [cartOpen, setCartOpen] = useState(false)
   const [favs, setFavs] = useState(() => { try { return JSON.parse(localStorage.getItem('ct_fav_' + cafe.id) || '[]') } catch { return [] } })
   const toggle = id => setFavs(f => { const nx = f.includes(id) ? f.filter(x => x !== id) : [...f, id]; try { localStorage.setItem('ct_fav_' + cafe.id, JSON.stringify(nx)) } catch {} return nx })
-  const loadMenu = () => supabase.from('menu_categories').select('id,name,sort_order,menu_items(id,name,description,price_paise,image_url,is_available,sort_order,badge,diet)').eq('cafe_id', cafe.id).order('sort_order')
+  const loadMenu = () => supabase.from('menu_categories').select('id,name,sort_order,menu_items(id,name,description,price_paise,image_url,is_available,sort_order,badge,diet,is_combo,add_ons)').eq('cafe_id', cafe.id).order('sort_order')
     .then(({ data, error }) => error ? setFailed(true) : setCats(data))
   useEffect(() => {
     track(cafe.id, 'menu'); loadMenu()
@@ -147,19 +147,39 @@ export function MenuPage() {
   }, [cats, q, view, veg, saved])
   useEffect(() => { document.querySelector('.catb.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }) }, [active])
   useEffect(() => { const k = e => e.key === 'Escape' && (setOpen(false), setCartOpen(false)); addEventListener('keydown', k); return () => removeEventListener('keydown', k) }, [])
-  const show = i => { setSel(i); setOpen(true) }
+  const show = i => { setSel(i); setSelectedAddons([]); setOpen(true) }
+  const addonTotal = (sel?.add_ons || []).filter(a => selectedAddons.includes(a.name)).reduce((s, a) => s + (a.price_paise || 0), 0)
+  const modalPrice = (sel?.price_paise || 0) + addonTotal
+  let lastRef = null
+  try {
+    const refs = JSON.parse(sessionStorage.getItem('ct_refs_' + cafe.id) || '[]')
+    lastRef = refs[0] || null
+  } catch {}
+
   return (<>
     <Sub title="Menu">
       <input className="search" type="search" placeholder="Search coffee, food and more" aria-label="Search the menu" value={q} onChange={e => setQ(e.target.value)} />
+      {lastRef && (
+        <a href={`/${slug}/bill/${lastRef}`} className="bill-open-banner" style={{ textDecoration: 'none' }}>
+          <span>
+            <b>🧾 Order #{lastRef}</b>
+            <small className="mut" style={{ display: 'block', fontSize: '11px' }}>Tap to view digital bill & live payment status</small>
+          </span>
+          <span style={{ fontWeight: 700, color: 'var(--ac, #aa3300)' }}>View Bill →</span>
+        </a>
+      )}
       {ord.hint && <p className="ordhint">Ordering is available. Scan or tap the card on your table to start an order.</p>}
       {offer && <GLink className="ban" to={`/${slug}/offers`}><span><small>Today’s offer</small><b>{offer.title}</b></span><Ic n="arrow" s={22} /></GLink>}
-      {picks.length > 0 && <><div className="sech"><span className="script">Guest favourites</span><h3>Popular picks</h3></div><div className="picks">{picks.map(i => <Card key={i.id} i={i} cls="pick" onOpen={show} fav={favs.includes(i.id)} toggle={toggle} ord={ord} />)}</div></>}
+
       <div className="mbar">{shown.length > 1 && <nav className="cats" aria-label="Menu sections">{shown.map(c =>
         <button key={c.id} className={'catb' + (active === c.id ? ' on' : '')} onClick={() => document.getElementById('c' + c.id)?.scrollIntoView({ behavior: 'smooth' })}><span><Ic n={catIcon(c.name)} s={20} /></span>{c.name}</button>)}</nav>}</div>
+
       {cats && cats.length > 0 && <div className="tools"><div className="chiprow">
         {hasDiet && <button className={'fchip' + (veg ? ' on' : '')} onClick={() => setVeg(!veg)} aria-pressed={veg}><Diet d="veg" />Veg only</button>}
         <button className={'fchip' + (saved ? ' on' : '')} onClick={() => setSaved(!saved)} aria-pressed={saved}><Ic n="heart" s={16} />Saved{favs.length ? ` (${favs.length})` : ''}</button></div>
         <div className="seg" role="group" aria-label="Layout"><button className={view === 'grid' ? 'on' : ''} onClick={() => setView('grid')} aria-label="Illustrated cards"><Ic n="grid" s={18} /></button><button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')} aria-label="Compact list"><Ic n="list" s={18} /></button></div></div>}
+
+      {picks.length > 0 && <><div className="sech"><span className="script">Guest favourites</span><h3>Popular picks</h3></div><div className="picks">{picks.map(i => <Card key={i.id} i={i} cls="pick" onOpen={show} fav={favs.includes(i.id)} toggle={toggle} ord={ord} />)}</div></>}
       {failed && <p>We couldn’t load the menu. Please refresh.</p>}
       {!cats && !failed && <><div className="sk" /><div className="sk" /><div className="sk" /></>}
       {cats && !cats.length && <p className="mut">The menu is coming soon.</p>}
@@ -168,9 +188,9 @@ export function MenuPage() {
         <div className="chead"><div><h3>{c.name}</h3><small>{c.items.length} {c.items.length === 1 ? 'item' : 'items'}</small></div><span className="chart"><Art kind={artKind(c.name, c.items[0]?.name)} /></span></div>
         {view === 'grid' ? <div className="grid2">{c.items.map((i, k) => <Card key={i.id} i={i} k={ci === 0 ? k : 9} cls={'gcard' + (k === 0 && c.items.length > 1 ? ' wide' : '')} onOpen={show} fav={favs.includes(i.id)} toggle={toggle} ord={ord} />)}</div>
           : c.items.map(i => <div key={i.id} className="mrowx"><button className={'mrow' + (i.is_available ? '' : ' out')} onClick={() => show(i)}>
-            <span className="t"><b><Diet d={i.diet} />{i.name}{i.badge && <span className="pill2">{BADGE[i.badge]}</span>}</b>{i.description && <p>{i.description}</p>}<span className="price">{inr(i.price_paise)}{!i.is_available && <em> · Sold out</em>}</span></span>
+            <span className="t"><b><Diet d={i.diet} />{i.name}{i.is_combo && <span className="pill2" style={{ background: 'var(--a, #e65100)', color: '#fff', marginLeft: '6px' }}>Combo</span>}{i.badge && <span className="pill2">{BADGE[i.badge]}</span>}</b>{i.description && <p>{i.description}</p>}<span className="price">{inr(i.price_paise)}{!i.is_available && <em> · Sold out</em>}</span></span>
             {okImg(i.image_url) ? <img src={okImg(i.image_url)} alt="" loading="lazy" /> : <span className="thumb2"><Art kind={artKind(i.name, i._cat)} /></span>}</button>
-            {ord.can && i.is_available && <Stepper qty={ord.cart[i.id] || 0} onAdd={() => ord.add(i.id)} onSub={() => ord.sub(i.id)} name={i.name} />}</div>)}
+            {ord.can && i.is_available && <Stepper qty={ord.cart[i.id] || 0} onAdd={() => ((i.add_ons && i.add_ons.length > 0) ? show(i) : ord.add(i.id))} onSub={() => ord.sub(i.id)} name={i.name} />}</div>)}
       </section>)}
       <p className="small mut">Please tell our staff about any allergies.</p>
     </Sub>
@@ -180,9 +200,50 @@ export function MenuPage() {
     <div className={'sheet' + (open ? ' on' : '')} role="dialog" aria-modal="true" aria-label={sel?.name} aria-hidden={!open}>
       {sel && <>{okImg(sel.image_url) ? <img className="sheetimg" src={okImg(sel.image_url)} alt="" /> : <div className="sheetart"><Art kind={artKind(sel.name, sel._cat)} /></div>}
         <div className="sheetbody"><button className="x" onClick={() => setOpen(false)} aria-label="Close"><Ic n="x" s={20} /></button>
-          {sel.badge && <span className="badge">{BADGE[sel.badge]}</span>}
-          <h3><Diet d={sel.diet} />{sel.name}</h3><p className="price big">{inr(sel.price_paise)}</p>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '4px' }}>
+            {sel.is_combo && <span className="pill2" style={{ background: 'var(--a, #e65100)', color: '#fff' }}>Combo Pack</span>}
+            {sel.badge && <span className="badge">{BADGE[sel.badge]}</span>}
+          </div>
+          <h3><Diet d={sel.diet} />{sel.name}</h3><p className="price big">{inr(modalPrice)}</p>
           {sel.description && <p>{sel.description}</p>}
+
+          {sel.add_ons && sel.add_ons.length > 0 && (
+            <div style={{ margin: '14px 0', textAlign: 'left' }}>
+              <b style={{ fontSize: '13px', display: 'block', marginBottom: '8px' }}>Customise & Add-ons</b>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {sel.add_ons.map((ao, idx) => {
+                  const checked = selectedAddons.includes(ao.name)
+                  return (
+                    <label key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--card, rgba(0,0,0,0.03))', borderRadius: '10px', cursor: 'pointer', border: checked ? '1.5px solid var(--ac, #aa3300)' : '1px solid rgba(120,120,120,0.2)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setSelectedAddons(prev => checked ? prev.filter(x => x !== ao.name) : [...prev, ao.name])}
+                        />
+                        <span>{ao.name}</span>
+                      </span>
+                      <b>+{inr(ao.price_paise)}</b>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {ord.can && sel.is_available && (
+            <button
+              className="btn"
+              style={{ width: '100%', margin: '14px 0 8px' }}
+              onClick={() => {
+                ord.add(sel.id, selectedAddons)
+                setOpen(false)
+              }}
+            >
+              Add to order · {inr(modalPrice)}
+            </button>
+          )}
+
           <span className={'badge' + (sel.is_available ? '' : ' no')}>{sel.is_available ? 'Available now' : 'Sold out for now'}</span>
           <button className={'favbtn' + (favs.includes(sel.id) ? ' on' : '')} onClick={() => toggle(sel.id)}><Ic n="heart" s={18} />{favs.includes(sel.id) ? 'Saved' : 'Save for later'}</button></div></>}
     </div>

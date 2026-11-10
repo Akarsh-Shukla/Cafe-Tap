@@ -19,6 +19,7 @@
     sans-serif;
   overflow-x: clip;
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 .lx *,
 .lx *::before,
@@ -1178,6 +1179,12 @@
   gap: 12px;
   margin-top: 30px;
 }
+@media (max-width:440px) {
+  .lx-bento {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
 .lx-feat {
   padding: 20px;
   border-radius: 22px;
@@ -1187,6 +1194,7 @@
     transform .35s cubic-bezier(.2, .8, .2, 1),
     box-shadow .35s,
     background .35s;
+  will-change: transform;
 }
 .lx-ficon {
   display: grid;
@@ -1280,6 +1288,7 @@
   overflow-x: auto;
   padding: 2px 2px 6px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .lx-row::-webkit-scrollbar {
   display: none;
@@ -1363,6 +1372,8 @@
   margin: 0 -20px;
   scrollbar-width: none;
   perspective: 1200px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .lx-deck::-webkit-scrollbar {
   display: none;

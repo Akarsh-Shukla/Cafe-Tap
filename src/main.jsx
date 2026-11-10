@@ -9,6 +9,7 @@ import Landing from './pages/Landing.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Welcome from './pages/Welcome.jsx'
+import BillPage from './pages/BillPage.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './styles.css'
 
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')).render(
     <Route path="/dashboard" element={<Dashboard />} />
     <Route path="/admin" element={<Admin />} />
     <Route path="/admin/:id" element={<Admin />} />
+    <Route path="/:slug/bill/:ref" element={<BillPage />} />
     <Route path="/:slug" element={<GuestLayout />}>
       <Route index element={<Home />} />
       <Route path="t/:table" element={<Home />} />

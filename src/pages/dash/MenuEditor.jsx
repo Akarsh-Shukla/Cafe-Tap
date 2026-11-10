@@ -17,6 +17,12 @@ export default function MenuEditor({ cafe, uid }) {
   const upItem = (id, f) => run(supabase.from('menu_items').update(f).eq('id', id))
   const delItem = id => confirm('Remove this item?') && run(supabase.from('menu_items').delete().eq('id', id))
   const photo = async (id, file) => { if (!file) return; try { upItem(id, { image_url: await upload(file, uid) }) } catch (e) { setMsg(e.message) } }
+  const parseAddons = text => (text || '').split(',').map(s => {
+    const [name, price] = s.split(':').map(x => x.trim())
+    if (!name) return null
+    const p = Math.round(parseFloat(price || 0) * 100)
+    return { name, price_paise: isNaN(p) ? 0 : Math.max(0, p) }
+  }).filter(Boolean)
   return (<>
     <p className="muted">Edit any field and tap outside it to save. Untick “Available” to mark an item sold out.</p>
     {msg && <p className="err">{msg}</p>}
@@ -27,10 +33,12 @@ export default function MenuEditor({ cafe, uid }) {
       {c.menu_items.map(i => <div key={i.id} className="sub">
         <input defaultValue={i.name} placeholder="Item name" onBlur={e => e.target.value !== i.name && upItem(i.id, { name: e.target.value })} />
         <div className="row"><input type="number" min="0" step="1" defaultValue={i.price_paise / 100} aria-label="Price in rupees" onBlur={e => { const p = Math.round(parseFloat(e.target.value || 0) * 100); if (p >= 0 && p !== i.price_paise) upItem(i.id, { price_paise: p }) }} />
-          <label className="chk"><input type="checkbox" checked={i.is_available} onChange={e => upItem(i.id, { is_available: e.target.checked })} /> Available</label></div>
+          <label className="chk"><input type="checkbox" checked={i.is_available} onChange={e => upItem(i.id, { is_available: e.target.checked })} /> Available</label>
+          <label className="chk"><input type="checkbox" checked={!!i.is_combo} onChange={e => upItem(i.id, { is_combo: e.target.checked })} /> Combo</label></div>
         <input defaultValue={i.description || ''} placeholder="Short description" onBlur={e => e.target.value !== (i.description || '') && upItem(i.id, { description: e.target.value })} />
         <div className="row"><select value={i.diet || ''} onChange={e => upItem(i.id, { diet: e.target.value || null })} aria-label="Veg or non-veg"><option value="">Veg / non-veg: not set</option><option value="veg">Veg</option><option value="nonveg">Non-veg</option><option value="egg">Contains egg</option></select>
           <select value={i.badge || ''} onChange={e => upItem(i.id, { badge: e.target.value || null })} aria-label="Badge"><option value="">No badge</option><option value="bestseller">Bestseller</option><option value="chefs">Chef’s pick</option><option value="new">New</option><option value="popular">Popular</option></select></div>
+        <input defaultValue={(i.add_ons || []).map(a => a.name + ': ' + (a.price_paise / 100)).join(', ')} placeholder="Add-ons (e.g. Extra Cheese: 30, Oat Milk: 40)" onBlur={e => upItem(i.id, { add_ons: parseAddons(e.target.value) })} aria-label="Add-ons" />
         <div className="row">{i.image_url && <img className="thumb" src={i.image_url} alt="" />}
           <label className="filebtn">{i.image_url ? 'Change photo' : 'Add photo'}<input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => photo(i.id, e.target.files[0])} /></label>
           {i.image_url && <button className="link" onClick={() => upItem(i.id, { image_url: null })}>Remove photo</button>}

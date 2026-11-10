@@ -69,7 +69,7 @@ export function Workspace({ cafe, uid, isAdmin, reload, onBack }) {
       {tab === 'sales' && pos && !isAdmin && <Sales cafe={cafe} />}
       {tab === 'register' && !pos && !isAdmin && <Register cafe={cafe} owner />}
       {tab === 'staff' && !isAdmin && <StaffAccess cafe={cafe} />}
-      {tab === 'pos' && pos && <PosSettings cafe={cafe} />}
+      {tab === 'pos' && pos && <PosSettings cafe={cafe} isAdmin={isAdmin} />}
       {isAdmin && tab === 'tables' && <Tables cafe={cafe} />}
       {isAdmin && tab === 'business' && <Business cafe={cafe} reload={reload} onDeleted={onBack} />}
     </div></div>)
